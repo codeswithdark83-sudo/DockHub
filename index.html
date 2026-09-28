@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DockHub</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%237c8cff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23b16cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cg transform=%22translate%284.5 4.5%29 scale%28.96%29%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%223%22 y=%223%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Crect x=%2214%22 y=%223%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Crect x=%223%22 y=%2214%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Cpath d=%22M14 17.5h7M17.5 14v7%22/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d12;--bg2:#12151c;--card:rgba(255,255,255,.045);--bd:rgba(255,255,255,.09);--tx:#eef0f5;--mut:#8b91a1;--ac:#7c8cff;--ac2:#b16cff;--sh:0 10px 30px rgba(0,0,0,.35);--glow:rgba(124,140,255,.22);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#f4f5fa;--bg2:#fff;--card:rgba(255,255,255,.7);--bd:rgba(20,24,40,.09);--tx:#161a28;--mut:#6a7185;--sh:0 10px 30px rgba(30,40,80,.12);--glow:rgba(124,140,255,.25)}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(600px 400px at 15% -5%,rgba(124,140,255,.16),transparent),radial-gradient(500px 400px at 90% 10%,rgba(177,108,255,.12),transparent)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:16px;padding:12px 24px;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;box-shadow:0 4px 16px var(--glow);transition:transform .4s}
+.brand:hover .logo{transform:rotate(-8deg) scale(1.08)}
+.search{flex:1;max-width:520px;margin:0 auto;position:relative}
+.search input{width:100%;padding:10px 14px 10px 38px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:14px;outline:0;transition:.2s}
+.search input:focus{border-color:var(--ac);box-shadow:0 0 0 4px var(--glow)}
+.search svg{position:absolute;left:12px;top:50%;translate:0 -50%;color:var(--mut)}
+.acts{display:flex;align-items:center;gap:8px}
+.btn{padding:9px 14px;border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--bd);background:var(--card);transition:.2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);border-color:var(--ac)}
+.btn:active{transform:scale(.97)}
+.btn.p{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent;color:#fff;box-shadow:0 4px 14px var(--glow)}
+.ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--bd);background:var(--card);transition:.25s}
+.ic:hover{transform:translateY(-2px) rotate(15deg)}
+.av{width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid var(--bd);display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--card);transition:.2s}
+.av:hover{border-color:var(--ac);transform:scale(1.06)}
+.av.on{background:linear-gradient(135deg,#34d399,#3b82f6);color:#fff}
+main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;align-items:start}
+.cat{border:1px solid var(--bd);background:var(--card);border-radius:20px;padding:16px;backdrop-filter:blur(10px);animation:in .5s both}
+@keyframes in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.ch{display:flex;align-items:center;gap:10px}
+.ci{font-size:20px;width:38px;height:38px;border-radius:11px;background:var(--bg2);border:1px solid var(--bd);display:grid;place-items:center;transition:.25s}
+.ci:hover{transform:scale(1.12) rotate(-6deg)}
+.ct{flex:1;font-weight:600;font-size:15px;padding:4px 6px;border-radius:8px;outline:0;min-width:0}
+.ct:focus{background:var(--bg2);box-shadow:0 0 0 2px var(--ac)}
+.cnt{font-size:12px;color:var(--mut)}
+.chev{transition:transform .3s;color:var(--mut)}
+.cat.closed .chev{transform:rotate(-90deg)}
+.body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s}
+.cat.closed .body{grid-template-rows:0fr}
+.body>div{overflow:hidden}
+.items{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding-top:14px}
+.card{position:relative;display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;border:1px solid var(--bd);background:var(--bg2);text-decoration:none;color:inherit;transition:transform .25s cubic-bezier(.2,.8,.3,1),box-shadow .25s,border-color .25s;overflow:hidden;animation:in .4s both}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(160px circle at var(--mx,50%) var(--my,50%),var(--glow),transparent 70%);opacity:0;transition:opacity .25s;pointer-events:none}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sh);border-color:var(--ac)}
+.card:hover::before{opacity:1}
+.fav{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;position:relative;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.nm{flex:1;min-width:0;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm small{display:block;font-size:11px;color:var(--mut);font-weight:400;overflow:hidden;text-overflow:ellipsis}
+.dots{position:relative;z-index:2;width:26px;height:26px;border-radius:8px;color:var(--mut);opacity:0;transition:.2s;font-size:16px;line-height:1}
+.card:hover .dots,.dots:focus,.dots.o{opacity:1}
+.dots:hover{background:var(--card);color:var(--tx)}
+@media(hover:none){.dots{opacity:1}}
+.menu{position:absolute;right:8px;top:40px;z-index:5;min-width:110px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);padding:4px;animation:in .18s both}
+.menu button{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:13px}
+.menu button:hover{background:var(--card)}
+.menu .del{color:#f87171}
+.addm{grid-column:1/-1;padding:9px;border:1px dashed var(--bd);border-radius:12px;color:var(--mut);font-size:13px;transition:.2s}
+.addm:hover{border-color:var(--ac);color:var(--tx)}
+.web{display:flex;align-items:center;gap:10px;padding:14px 16px;margin-bottom:20px;border-radius:14px;border:1px solid var(--ac);background:var(--glow);width:100%;text-align:left;animation:in .3s both}
+.empty{text-align:center;color:var(--mut);padding:60px 0}
+.ov{position:fixed;inset:0;z-index:50;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);display:none;place-items:center;padding:16px}
+.ov.s{display:grid;animation:fade .2s both}
+@keyframes fade{from{opacity:0}}
+.mod{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--bd);border-radius:20px;padding:22px;box-shadow:var(--sh);animation:pop .3s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pop{from{opacity:0;transform:translateY(20px) scale(.94)}}
+.mod h3{font-size:17px;margin-bottom:14px}
+.mod label{display:block;font-size:12px;color:var(--mut);margin:12px 0 5px}
+.mod input,.mod select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:14px;outline:0}
+.mod input:focus,.mod select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
+.prev{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--bd);font-size:13px;min-height:56px}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.mod{max-height:90vh;overflow:auto}
+.fav svg{width:22px;height:22px}.fav img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;font-size:14px}
+.or{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12px;margin:14px 0 2px}.or::before,.or::after{content:"";flex:1;height:1px;background:var(--bd)}
+.err{color:#f87171;font-size:12px;min-height:16px;margin-top:8px}
+.sw{font-size:13px;color:var(--mut);margin-top:14px;text-align:center}.sw a{color:var(--ac);cursor:pointer;font-weight:500}
+.note{font-size:12px;color:var(--mut);line-height:1.5;margin-top:10px}
+.mod input[type=file]{padding:7px;font-size:12px}
+.bn{display:none}
+@media(max-width:760px){
+.nav{flex-wrap:wrap;padding:10px 14px;gap:10px}.search{order:3;flex:1 1 100%;max-width:none}.acts .btn{display:none}
+.brand{flex:1}main{padding:18px 14px 110px}.grid{grid-template-columns:1fr}
+.bn{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:30;justify-content:space-around;padding:8px;border-radius:20px;background:color-mix(in srgb,var(--bg2) 80%,transparent);backdrop-filter:blur(18px);border:1px solid var(--bd);box-shadow:var(--sh)}
+.bn button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--mut);padding:6px 12px;border-radius:12px;transition:.2s}
+.bn button:active{transform:scale(.9);background:var(--card)}
+.bn span{font-size:18px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="brand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M14 17.5h7M17.5 14v7"/></svg></div>DockHub</div>
+  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Search bookmarks or the web…  (Enter = web search)" autocomplete="off"></div>
+  <div class="acts">
+    <button class="btn" id="addCat">+ Add Category</button>
+    <button class="btn p" id="addBm">+ Add Bookmark</button>
+    <button class="ic" id="theme" title="Toggle theme">🌙</button>
+    <button class="av" id="user" title="Sign in with Google">G</button>
+  </div>
+</header>
+<main><div id="root"></div></main>
+<nav class="bn">
+  <button id="bq"><span>🔍</span>Search</button>
+  <button id="bb"><span>🔖</span>Bookmark</button>
+  <button id="bc"><span>🗂️</span>Category</button>
+  <button id="bt"><span>🌓</span>Theme</button>
+</nav>
+<div class="ov" id="ov"><div class="mod" id="mod"></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const ICONS=['🌐','✨','🤖','💬','💻','📁','🎬','🎵','📰','🛒','🎮','📚','🧰','🏠','💼'];
+const B=(t,u)=>({id:uid(),title:t,url:u});
+const DEF=[
+ {id:uid(),name:'Google Suite',icon:'🌐',open:true,items:[B('Gmail','https://mail.google.com'),B('Drive','https://drive.google.com'),B('Calendar','https://calendar.google.com'),B('Docs','https://docs.google.com'),B('YouTube','https://youtube.com')]},
+ {id:uid(),name:'AI Tools',icon:'🤖',open:true,items:[B('Claude','https://claude.ai'),B('ChatGPT','https://chatgpt.com'),B('Gemini','https://gemini.google.com'),B('Perplexity','https://perplexity.ai')]},
+ {id:uid(),name:'Social Media',icon:'💬',open:true,items:[B('X','https://x.com'),B('LinkedIn','https://linkedin.com'),B('Reddit','https://reddit.com'),B('Instagram','https://instagram.com')]},
+ {id:uid(),name:'Work / Dev',icon:'💻',open:true,items:[B('GitHub','https://github.com'),B('Stack Overflow','https://stackoverflow.com'),B('Notion','https://notion.so'),B('Figma','https://figma.com')]}
+];
+const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const cp=o=>JSON.parse(JSON.stringify(o));
+let S={cats:cp(DEF),dark:true,user:null},q='';
+const dk=u=>u?'dockhub_u_'+u.email:'dockhub';
+function load(u){S.user=u;const d=rd(dk(u));S.cats=d&&d.cats?d.cats:cp(DEF);if(d&&typeof d.dark==='boolean')S.dark=d.dark}
+const save=()=>{wr(dk(S.user),{cats:S.cats,dark:S.dark});wr('dockhub_session',S.user)};
+load(rd('dockhub_session'));
+const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
+const norm=u=>{u=u.trim();if(!u)return '';return /^https?:\/\//i.test(u)?u:'https://'+u};
+const nice=u=>{const h=host(u).split('.');const n=h.length>1?h[h.length-2]:h[0]||'';return n?n[0].toUpperCase()+n.slice(1):''};
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+const W='#fff',ST=(d,c=W,w=2)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const LOGOS={
+'mail.google.com':['#EA4335',ST('M4 7l8 6 8-6M4 7v10h16V7z')],
+'drive.google.com':['#fff','<path d="M8 4h8l6 10h-8z" fill="#FBBC04"/><path d="M8 4L2 14l4 6 6-10z" fill="#0F9D58"/><path d="M6 20h16l-4-6H2z" fill="#4285F4"/>'],
+'calendar.google.com':['#4285F4','<rect x="4" y="5" width="16" height="15" rx="2" fill="#fff"/><rect x="4" y="5" width="16" height="4.5" rx="1" fill="#EA4335"/>'+ST('M8 13h3M13 13h3M8 16.5h3','#4285F4',1.8)],
+'docs.google.com':['#4285F4','<path d="M6 3h8l4 4v14H6z" fill="#fff"/>'+ST('M9 12h6M9 15h6M9 18h4','#4285F4',1.6)],
+'google.com':['#fff','<text x="12" y="18" text-anchor="middle" font-size="17" font-weight="700" fill="#4285F4" font-family="Arial,sans-serif">G</text>'],
+'gemini.google.com':['#fff','<path d="M12 2c.6 5.5 4.5 9.4 10 10-5.5.6-9.4 4.5-10 10-.6-5.5-4.5-9.4-10-10 5.5-.6 9.4-4.5 10-10z" fill="#4285F4"/>'],
+'youtube.com':['#FF0000','<path d="M9.5 7.5v9l7.5-4.5z" fill="#fff"/>'],
+'claude.ai':['#D97757',ST('M12 4v16M4 12h16M6.3 6.3l11.4 11.4M17.7 6.3L6.3 17.7','#fff',2.4)],
+'chatgpt.com':['#10A37F',ST('M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z')+'<circle cx="12" cy="12" r="2.4" fill="#fff"/>'],
+'perplexity.ai':['#20808D',ST('M12 3v18M6 8l6 5 6-5M6 8v8l6 5 6-5V8L12 3z','#fff',1.6)],
+'x.com':['#000',ST('M6 5l12 14M18 5L6 19','#fff',2.4)],
+'linkedin.com':['#0A66C2','<circle cx="7" cy="7.5" r="1.7" fill="#fff"/><path d="M5.5 10.5h3v8h-3zM11 10.5h2.8v1.2c.6-1 1.6-1.4 2.8-1.4 2.4 0 3 1.6 3 3.8v4.4h-3v-4c0-1 0-1.9-1.2-1.9S14 13.6 14 14.6v3.9h-3z" fill="#fff"/>'],
+'reddit.com':['#FF4500','<ellipse cx="12" cy="14" rx="7.5" ry="5" fill="#fff"/><circle cx="9.5" cy="13.5" r="1.3" fill="#FF4500"/><circle cx="14.5" cy="13.5" r="1.3" fill="#FF4500"/><circle cx="17.5" cy="6" r="1.6" fill="#fff"/>'+ST('M12 9.5l1-4.5 4 1','#fff',1.4)],
+'instagram.com':['linear-gradient(135deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5)','<rect x="5" y="5" width="14" height="14" rx="4.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/>'],
+'github.com':['#181717','<path d="M6 10c0-4 2.6-6 6-6s6 2 6 6c0 5-2.5 8-6 8s-6-3-6-8z" fill="#fff"/>'+ST('M6.5 6L8 9M17.5 6L16 9','#fff',2.4)],
+'stackoverflow.com':['#F48024',ST('M5 14v5h14v-5M7 16.5h10M7.5 13.2l9.6 2M9 9.8l8.7 4M11.5 6.5l7.5 6','#fff',1.9)],
+'notion.so':['#fff','<rect x="5" y="4.5" width="14" height="15" rx="2" fill="none" stroke="#111" stroke-width="1.8"/>'+ST('M9 16V8l6 8V8','#111',1.8)],
+'figma.com':['#1e1e1e','<rect x="7" y="3" width="5" height="6" rx="2.5" fill="#F24E1E"/><rect x="12" y="3" width="5" height="6" rx="2.5" fill="#FF7262"/><rect x="7" y="9" width="5" height="6" rx="2.5" fill="#A259FF"/><circle cx="14.5" cy="12" r="2.5" fill="#1ABCFE"/><path d="M7 18.5A2.5 2.5 0 0 1 9.5 16H12v2.5a2.5 2.5 0 0 1-5 0z" fill="#0ACF83"/>']
+};
+const brand=u=>{const h=host(u);return LOGOS[h]||LOGOS[Object.keys(LOGOS).find(k=>h.endsWith('.'+k))]};
+const fav=(t,u,logo)=>{
+  if(logo)return `<div class="fav" style="background:#fff"><img alt="" src="${esc(logo)}"></div>`;
+  const b=brand(u);if(b)return `<div class="fav" style="background:${b[0]};${b[0]==='#fff'?'border:1px solid rgba(0,0,0,.1)':''}"><svg viewBox="0 0 24 24">${b[1]}</svg></div>`;
+  const h=hue(host(u)||t);return `<div class="fav" style="background:linear-gradient(135deg,hsl(${h} 70% 55%),hsl(${(h+40)%360} 70% 45%))">${esc((t||'?')[0].toUpperCase())}</div>`};
+
+function render(){
+  document.documentElement.dataset.theme=S.dark?'dark':'light';
+  $('#theme').textContent=S.dark?'🌙':'☀️';
+  const u=$('#user');u.className='av'+(S.user?' on':'');u.textContent=S.user?S.user.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase():'👤';u.title=S.user?S.user.email:'Sign in';
+  const ql=q.trim().toLowerCase();let html='',shown=0;
+  if(ql)html+=`<button class="web" data-web>🔎 <span>Search the web for <b>“${esc(q.trim())}”</b></span></button>`;
+  S.cats.forEach((c,ci)=>{
+    const its=ql?c.items.filter(i=>(i.title+host(i.url)).toLowerCase().includes(ql)):c.items;
+    if(ql&&!its.length)return;shown++;
+    html+=`<section class="cat ${c.open||ql?'':'closed'}" data-c="${c.id}" style="animation-delay:${ci*60}ms">
+      <div class="ch"><button class="ci" data-act="icon" title="Change icon">${c.icon}</button>
+      <div class="ct" contenteditable="true" spellcheck="false" data-act="title">${esc(c.name)}</div>
+      <span class="cnt">${c.items.length}</span>
+      <button class="dots" data-act="delcat" title="Delete category" style="opacity:.6">🗑</button>
+      <button class="dots o chev" data-act="toggle" style="opacity:1">▾</button></div>
+      <div class="body"><div><div class="items">${its.map((i,k)=>`
+        <a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" data-b="${i.id}" style="animation-delay:${k*40}ms">
+          ${fav(i.title,i.url,i.logo)}<div class="nm">${esc(i.title)}<small>${esc(host(i.url))}</small></div>
+          <button class="dots" data-act="menu" aria-label="Menu">⋮</button></a>`).join('')}
+        <button class="addm" data-act="add">+ Add bookmark</button></div></div></div></section>`;
+  });
+  $('#root').innerHTML=(ql?html.split('</button>')[0]+'</button>':'')?'':'';
+  $('#root').innerHTML=(ql?html.match(/<button class="web"[\s\S]*?<\/button>/)[0]:'')+`<div class="grid">${ql?html.replace(/<button class="web"[\s\S]*?<\/button>/,''):html}</div>`+(!S.cats.length?'<div class="empty">No categories yet — add one to get started.</div>':ql&&!shown?'<div class="empty">No bookmarks match. Press Enter to search the web.</div>':'');
+}
+
+const find=id=>S.cats.find(c=>c.id===id);
+function closeMenus(){document.querySelectorAll('.menu').forEach(m=>m.remove());document.querySelectorAll('.dots.o:not(.chev)').forEach(d=>d.classList.remove('o'))}
+function openModal(h){$('#mod').style.maxWidth='';$('#mod').innerHTML=h;$('#ov').classList.add('s');const f=$('#mod input');f&&setTimeout(()=>f.focus(),50)}
+function closeModal(){$('#ov').classList.remove('s')}
+
+function bmModal(catId,edit){
+  if(!S.cats.length){catModal();return}
+  const b=edit?find(edit.c).items.find(i=>i.id===edit.b):null;
+  const cur=edit?edit.c:(catId||S.cats[0].id);
+  openModal(`<h3>${b?'Edit bookmark':'Add bookmark'}</h3>
+   <label>URL</label><input id="fu" placeholder="github.com" value="${b?esc(b.url):''}">
+   <div class="prev" id="pv"></div>
+   <label>Nickname / title <span style="opacity:.6">(auto-filled from URL)</span></label><input id="ft" value="${b?esc(b.title):''}">
+   <label>Custom logo <span style="opacity:.6">(optional — auto-detected for popular sites)</span></label><div style="display:flex;gap:8px"><input id="fl" type="file" accept="image/*"><button class="btn" id="rl" type="button">Clear</button></div>
+   <button class="btn" id="ai" type="button" style="width:100%;margin-top:8px">✨ Auto-generate icon for this site</button>
+   <label>Category</label><select id="fc">${S.cats.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${c.icon} ${esc(c.name)}</option>`).join('')}</select>
+   <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">${b?'Save':'Add'}</button></div>`);
+  let touched=!!b,logo=b?b.logo:undefined;const fu=$('#fu'),ft=$('#ft');
+  const pv=()=>{const u=norm(fu.value);if(!touched)ft.value=nice(u);$('#pv').innerHTML=u&&host(u)?fav(ft.value||nice(u),u,logo)+`<div><b>${esc(ft.value||nice(u))}</b><div style="color:var(--mut);font-size:12px">${esc(host(u))}</div></div>`:'<span style="color:var(--mut)">Preview appears here…</span>'};
+  ft.oninput=()=>{touched=!!ft.value;pv()};fu.oninput=pv;
+  $('#fl').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image(),url=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,64,64);logo=c.toDataURL('image/png');URL.revokeObjectURL(url);pv()};im.src=url};
+  $('#ai').onclick=async()=>{const u=norm(fu.value),btn=$('#ai');if(!host(u)){fu.focus();return}
+    btn.disabled=true;btn.textContent='Designing icon…';
+    try{const sm=window.claude&&await claude.use('sample');if(!sm)throw 0;
+      const r=await sm.json(`Design a simple app-icon logo for the website "${host(u)}" (${ft.value||nice(u)}). Return ONLY JSON: {"bg":"#RRGGBB","inner":"..."}. bg = the brand's main color. inner = SVG shapes/paths markup for viewBox 0 0 24 24, mostly white, a simple geometric mark evoking the brand. No text, script, images or styles. Max 600 characters.`,{modelTier:'quick'});
+      const bg=/^#[0-9a-f]{6}$/i.test(r.bg)?r.bg:'#6366f1';
+      const inner=String(r.inner||'').replace(/<\s*(script|foreignObject|image|style|use)[\s\S]*?(<\/\s*\1\s*>|\/>|$)/gi,'').replace(/\son\w+\s*=/gi,' x=').slice(0,1500);
+      logo='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="${bg}"/>${inner}</svg>`);
+      pv();btn.textContent='✨ Regenerate icon'}
+    catch(e){btn.textContent='Generation unavailable — upload a logo instead'}
+    btn.disabled=false};
+  $('#rl').onclick=()=>{logo=undefined;$('#fl').value='';pv()};pv();
+  const go=()=>{const u=norm(fu.value);if(!host(u)){fu.focus();fu.style.borderColor='#f87171';return}
+    const t=ft.value.trim()||nice(u),to=$('#fc').value;
+    if(b){const from=find(edit.c);from.items=from.items.filter(i=>i.id!==b.id);find(to).items.push({id:b.id,title:t,url:u,logo})}
+    else find(to).items.push({...B(t,u),logo});
+    save();closeModal();render()};
+  $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+function catModal(){
+  let ic=ICONS[0];
+  openModal(`<h3>Add category</h3><label>Name</label><input id="cn" placeholder="e.g. Design">
+   <label>Icon</label><div style="display:flex;flex-wrap:wrap;gap:6px" id="ip">${ICONS.map((e,i)=>`<button class="ic" data-i="${e}" style="${i?'':'border-color:var(--ac)'}">${e}</button>`).join('')}</div>
+   <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">Create</button></div>`);
+  $('#ip').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;ic=b.dataset.i;$('#ip').querySelectorAll('.ic').forEach(x=>x.style.borderColor='');b.style.borderColor='var(--ac)'};
+  const go=()=>{const n=$('#cn').value.trim();if(!n){$('#cn').focus();return}S.cats.push({id:uid(),name:n,icon:ic,open:true,items:[]});save();closeModal();render()};
+  $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+
+$('#root').addEventListener('click',e=>{
+  const t=e.target.closest('[data-act],[data-web]');
+  if(e.target.closest('.menu')){
+    const m=e.target.closest('button[data-m]');if(!m)return;e.preventDefault();e.stopPropagation();
+    const cid=e.target.closest('.cat').dataset.c,bid=e.target.closest('.card').dataset.b;
+    if(m.dataset.m==='edit'){closeMenus();bmModal(null,{c:cid,b:bid})}
+    else{const c=find(cid);c.items=c.items.filter(i=>i.id!==bid);save();closeMenus();render()}
+    return}
+  closeMenus();
+  if(!t)return;
+  if(t.dataset.web!==undefined){window.open('https://www.google.com/search?q='+encodeURIComponent(q.trim()),'_blank','noopener');return}
+  const c=find(e.target.closest('.cat')?.dataset.c),a=t.dataset.act;
+  if(a==='menu'){e.preventDefault();e.stopPropagation();const card=t.closest('.card');t.classList.add('o');
+    const m=document.createElement('div');m.className='menu';m.innerHTML='<button data-m="edit">✏️ Edit</button><button data-m="del" class="del">🗑 Delete</button>';card.appendChild(m);card.style.overflow='visible';
+    m.onclick=ev=>ev.stopPropagation()}
+  else if(a==='toggle'){c.open=!c.open;save();e.target.closest('.cat').classList.toggle('closed',!c.open)}
+  else if(a==='icon'){c.icon=ICONS[(ICONS.indexOf(c.icon)+1)%ICONS.length];save();render()}
+  else if(a==='add')bmModal(c.id);
+  else if(a==='delcat'){if(!c.items.length||confirm(`Delete “${c.name}” and its ${c.items.length} bookmarks?`)){S.cats=S.cats.filter(x=>x!==c);save();render()}}
+});
+$('#root').addEventListener('focusout',e=>{if(e.target.dataset.act==='title'){const c=find(e.target.closest('.cat').dataset.c);c.name=e.target.textContent.trim()||c.name;save();e.target.textContent=c.name}});
+$('#root').addEventListener('keydown',e=>{if(e.target.dataset.act==='title'&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
+$('#root').addEventListener('mousemove',e=>{const c=e.target.closest('.card');if(!c)return;const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')});
+document.addEventListener('click',e=>{if(!e.target.closest('.menu,[data-act=menu]'))closeMenus()});
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov'||e.target.closest('[data-x]'))closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMenus()}if(e.key==='/'&&!/INPUT|SELECT/.test(document.activeElement.tagName)&&!document.activeElement.isContentEditable){e.preventDefault();$('#q').focus()}});
+$('#q').addEventListener('input',e=>{q=e.target.value;render()});
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&q.trim()){const first=document.querySelector('.card');const ql=q.trim();
+  if(/^[\w-]+(\.[\w-]+)+/.test(ql)&&!/\s/.test(ql))window.open(norm(ql),'_blank','noopener');
+  else window.open('https://www.google.com/search?q='+encodeURIComponent(ql),'_blank','noopener')}});
+const tg=()=>{S.dark=!S.dark;save();render()};
+$('#theme').onclick=tg;$('#bt').onclick=tg;
+$('#addBm').onclick=()=>bmModal();$('#bb').onclick=()=>bmModal();
+$('#addCat').onclick=catModal;$('#bc').onclick=catModal;
+$('#bq').onclick=()=>{scrollTo({top:0,behavior:'smooth'});$('#q').focus()};
+const b64=a=>btoa(String.fromCharCode(...new Uint8Array(a)));
+const unb=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function hashPw(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:150000},k,256))}
+const users=()=>rd('dockhub_users')||{};
+const GLOGO='<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.500 3.1-7.500z"/><path fill="#34A853" d="M12 22c2.800 0 5.100-.9 6.800-2.500l-3.300-2.600c-.9.600-2.100 1-3.500 1-2.700 0-5-1.800-5.800-4.300H2.800v2.700A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.200 13.600a6 6 0 0 1 0-3.800V7.100H2.800a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.900.5 4 1.600l3-3A10 10 0 0 0 2.800 7.100l3.400 2.700C7 7.700 9.300 5.900 12 5.900z"/></svg>';
+const ADMIN='codeswithdark83@gmail.com';
+const isAdmin=()=>!!S.user&&S.user.email===ADMIN;
+const getDb=async()=>{try{return window.claude?await claude.use('db'):null}catch(e){return null}};
+async function register(u,isNew){
+  try{const db=await getDb();if(!db)return;
+    const ref=db.doc('registry/'+u.email.replace(/[^a-z0-9]/g,'_')),now=Date.now();
+    if(isNew)await ref.set({email:u.email,name:u.name,provider:u.provider,joined:now,lastSeen:now});
+    else try{await ref.update({name:u.name,lastSeen:now})}catch(e){await ref.set({email:u.email,name:u.name,provider:u.provider,joined:now,lastSeen:now})}
+  }catch(e){}}
+function finish(u){const isNew=!!u.fresh;if(u.fresh){delete u.fresh}else load(u);S.user=u;save();closeModal();render();register(u,isNew)}
+async function adminModal(){
+  openModal('<h3>Admin dashboard</h3><p class="note">Loading users…</p>');$('#mod').style.maxWidth='760px';
+  let rows=null,err='';
+  try{const db=await getDb();if(!db)err='Shared database is unavailable in this view.';else rows=(await db.collection('registry').orderBy('joined','desc').limit(500).get()).docs.map(d=>d.data())}
+  catch(e){err='Could not read the user registry ('+(e&&e.code||'error')+'). Only the artifact owner or an Editor can read it.'}
+  const local=Object.entries(users()),wk=Date.now()-6048e5,f=t=>t?new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'–';
+  const stat=(n,l)=>`<div class="prev" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;margin:0"><b style="font-size:22px">${n}</b><span style="color:var(--mut);font-size:12px">${l}</span></div>`;
+  let h='<h3>Admin dashboard</h3>';
+  if(rows){h+=`<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length,'Total users')}${stat(rows.filter(r=>r.lastSeen>wk).length,'Active (7 days)')}${stat(rows.filter(r=>r.provider==='google').length,'Via Google')}</div>
+   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last active</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="padding:8px 6px">${esc(r.name||'')}</td><td style="padding:8px 6px">${esc(r.email||'')}</td><td style="padding:8px 6px">${esc(r.provider||'')}</td><td style="padding:8px 6px;white-space:nowrap">${f(r.joined)}</td><td style="padding:8px 6px;white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('')||'<tr><td colspan="5" style="padding:14px;color:var(--mut)">No registered users yet.</td></tr>'}</tbody></table></div>`}
+  else h+=`<div class="err">${esc(err)}</div>`;
+  h+=`<p class="note">Accounts created in this browser: ${local.length}. Sign-ups are recorded in the shared registry only when the visitor is allowed to write to it (see setup notes).</p><div class="mf"><button class="btn p" data-x>Close</button></div>`;
+  $('#mod').innerHTML=h;
+}
+function authModal(mode='in'){
+  const up=mode==='up';
+  openModal(`<h3>${up?'Create your account':'Welcome back'}</h3>
+   <button class="btn gbtn" id="gg">${GLOGO} Continue with Google</button><div class="or">or use email</div>
+   ${up?'<label>Name</label><input id="an" autocomplete="name">':''}
+   <label>Email</label><input id="ae" type="email" autocomplete="email">
+   <label>Password${up?' (min 8 characters)':''}</label><input id="ap" type="password" autocomplete="${up?'new-password':'current-password'}">
+   <div class="err" id="er"></div>
+   <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">${up?'Sign up':'Sign in'}</button></div>
+   <p class="sw">${up?'Have an account?':'New here?'} <a id="sw">${up?'Sign in':'Create an account'}</a></p>`);
+  $('#sw').onclick=()=>authModal(up?'in':'up');$('#gg').onclick=googleModal;
+  const er=m=>$('#er').textContent=m;
+  const go=async()=>{const email=$('#ae').value.trim().toLowerCase(),pw=$('#ap').value,name=up?$('#an').value.trim():'';
+    if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter a valid email address.');
+    if(up&&!name)return er('Please enter your name.');
+    if(pw.length<8&&up)return er('Password must be at least 8 characters.');
+    if(!pw)return er('Enter your password.');
+    const all=users(),acc=all[email];
+    try{
+      if(up){if(acc)return er('An account with this email already exists.');
+        const salt=crypto.getRandomValues(new Uint8Array(16));all[email]={name,salt:b64(salt),hash:await hashPw(pw,salt),provider:'email'};wr('dockhub_users',all);
+        finish({email,name,provider:'email',fresh:1})}
+      else{if(!acc||!acc.hash)return er(acc?'This email uses Google sign-in.':'No account found for this email.');
+        if(await hashPw(pw,unb(acc.salt))!==acc.hash)return er('Incorrect password.');
+        finish({email,name:acc.name,provider:'email'})}
+    }catch(e){er('Sign-in is unavailable in this browser.')}};
+  $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+function googleModal(){
+  openModal(`<h3 style="display:flex;align-items:center;gap:10px">${GLOGO} Choose a Google account</h3>
+   <p class="note">Demo mode: real Google OAuth needs your own Google client ID and a server. Enter any details to try the flow.</p>
+   <label>Name</label><input id="gn"><label>Gmail address</label><input id="ge" type="email" placeholder="you@gmail.com">
+   <div class="err" id="er"></div>
+   <div class="mf"><button class="btn" id="bk">Back</button><button class="btn p" id="ok">Continue</button></div>`);
+  $('#bk').onclick=()=>authModal('in');
+  const go=()=>{const email=$('#ge').value.trim().toLowerCase(),name=$('#gn').value.trim()||email.split('@')[0];
+    if(!/^\S+@\S+\.\S+$/.test(email))return $('#er').textContent='Enter a valid email address.';
+    const all=users(),acc=all[email];
+    if(acc&&acc.provider==='email')return $('#er').textContent='This email has a password account. Sign in with your password.';
+    const isNew=!acc;if(isNew){all[email]={name,provider:'google'};wr('dockhub_users',all)}
+    finish({email,name:isNew?name:acc.name,provider:'google',fresh:isNew?1:0})};
+  $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+$('#user').onclick=()=>{
+  if(!S.user)return authModal('in');
+  openModal(`<h3>Your account</h3><div class="prev"><div class="av on" style="width:40px;height:40px">${esc($('#user').textContent)}</div><div><b>${esc(S.user.name)}</b><div style="color:var(--mut);font-size:12px">${esc(S.user.email)} · ${S.user.provider==='google'?'Google':'Email'}</div></div></div>
+   <p class="note">Your bookmarks are saved to this account on this device.</p>
+   <div class="mf">${isAdmin()?'<button class="btn" id="ad">🛡 Admin dashboard</button>':''}<button class="btn" data-x>Close</button><button class="btn p" id="so">Sign out</button></div>`);
+  if(isAdmin())$('#ad').onclick=adminModal;
+  $('#so').onclick=()=>{save();wr('dockhub_session',null);load(null);closeModal();render()};
+};
+render();
+</script>
+</body>
+</html>
