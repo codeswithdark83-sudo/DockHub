@@ -43,7 +43,7 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;align-items:start}
 .cat{border:1px solid var(--bd);background:var(--card);border-radius:20px;padding:16px;backdrop-filter:blur(10px);animation:in .5s both}
 @keyframes in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
-.ch{display:flex;align-items:center;gap:10px}
+.ch{display:flex;align-items:center;gap:6px}
 .ci{font-size:20px;width:38px;height:38px;border-radius:11px;background:var(--bg2);border:1px solid var(--bd);display:grid;place-items:center;transition:.25s}
 .ci:hover{transform:scale(1.12) rotate(-6deg)}
 .ct{flex:1;font-weight:600;font-size:15px;padding:4px 6px;border-radius:8px;outline:0;min-width:0}
@@ -130,6 +130,10 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 .grip:hover{opacity:1}
 .card[draggable]{cursor:grab}
 .card.dragging,.cat.dragging{opacity:.35}
+.mv{font-size:10px;opacity:.55}
+@media(hover:none){.mv{opacity:.85}.grip{display:none}}
+@media(max-width:400px){.ch{gap:3px}.dots{width:24px;height:24px;font-size:12px}}
+.menu button[data-m=up],.menu button[data-m=down]{font-size:12.5px}
 .card.drag-over{box-shadow:inset 2px 0 0 var(--ac)}
 .card.drag-over.drag-after{box-shadow:inset -2px 0 0 var(--ac)}
 .cat.drag-over{box-shadow:inset 0 2px 0 var(--ac)}
@@ -226,7 +230,7 @@ function render(){
       <div class="ch"><span class="grip" title="Drag to reorder category">⠿</span><button class="ci" data-act="icon" title="Change icon">${c.icon}</button>
       <div class="ct" contenteditable="true" spellcheck="false" data-act="title">${esc(c.name)}</div>
       <span class="cnt">${c.items.length}</span>
-      <button class="dots" data-act="delcat" title="Delete category" style="opacity:.6">🗑</button>
+      <button class="dots mv" data-act="catup" title="Move category up">▲</button><button class="dots mv" data-act="catdown" title="Move category down">▼</button><button class="dots" data-act="delcat" title="Delete category" style="opacity:.6">🗑</button>
       <button class="dots o chev" data-act="toggle" style="opacity:1">▾</button></div>
       <div class="body"><div><div class="items">${its.map((i,k)=>`
         <a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" draggable="true" data-b="${i.id}" style="animation-delay:${k*40}ms">
@@ -341,17 +345,22 @@ $('#root').addEventListener('click',e=>{
     const m=e.target.closest('button[data-m]');if(!m)return;e.preventDefault();e.stopPropagation();
     const cid=e.target.closest('.cat').dataset.c,bid=e.target.closest('.card').dataset.b;
     if(m.dataset.m==='edit'){closeMenus();bmModal(null,{c:cid,b:bid})}
-    else{const c=find(cid);c.items=c.items.filter(i=>i.id!==bid);save();closeMenus();render()}
+    else if(m.dataset.m==='del'){const c=find(cid);c.items=c.items.filter(i=>i.id!==bid);save();closeMenus();render()}
+    else{const c=find(cid),idx=c.items.findIndex(i=>i.id===bid),to=m.dataset.m==='up'?idx-1:idx+1;
+      if(to>=0&&to<c.items.length){[c.items[idx],c.items[to]]=[c.items[to],c.items[idx]];save()}
+      closeMenus();render()}
     return}
   closeMenus();
   if(!t)return;
   if(t.dataset.web!==undefined){window.open('https://www.google.com/search?q='+encodeURIComponent(q.trim()),'_blank','noopener');return}
   const c=find(e.target.closest('.cat')?.dataset.c),a=t.dataset.act;
   if(a==='menu'){e.preventDefault();e.stopPropagation();const card=t.closest('.card');t.classList.add('o');
-    const m=document.createElement('div');m.className='menu';m.innerHTML='<button data-m="edit">✏️ Edit</button><button data-m="del" class="del">🗑 Delete</button>';card.appendChild(m);card.style.overflow='visible';card.classList.add('mo');t.closest('.cat').classList.add('mo')}
+    const m=document.createElement('div');m.className='menu';m.innerHTML='<button data-m="edit">✏️ Edit</button><button data-m="up">⬆ Move up</button><button data-m="down">⬇ Move down</button><button data-m="del" class="del">🗑 Delete</button>';card.appendChild(m);card.style.overflow='visible';card.classList.add('mo');t.closest('.cat').classList.add('mo')}
   else if(a==='toggle'){c.open=!c.open;save();e.target.closest('.cat').classList.toggle('closed',!c.open)}
   else if(a==='icon'){c.icon=ICONS[(ICONS.indexOf(c.icon)+1)%ICONS.length];save();render()}
   else if(a==='add')bmModal(c.id);
+  else if(a==='catup'||a==='catdown'){const idx=S.cats.findIndex(x=>x===c),to=a==='catup'?idx-1:idx+1;
+    if(to>=0&&to<S.cats.length){[S.cats[idx],S.cats[to]]=[S.cats[to],S.cats[idx]];save();render()}}
   else if(a==='delcat'){if(!c.items.length||confirm(`Delete “${c.name}” and its ${c.items.length} bookmarks?`)){S.cats=S.cats.filter(x=>x!==c);save();render()}}
 });
 $('#root').addEventListener('focusout',e=>{if(e.target.dataset.act==='title'){const c=find(e.target.closest('.cat').dataset.c);c.name=e.target.textContent.trim()||c.name;save();e.target.textContent=c.name}});
@@ -395,6 +404,12 @@ async function applyUser(u){
     wr(dk(u),{cats:S.cats,dark:S.dark});
   }catch(e){console.error('DockHub: could not load cloud data, using local copy',e);load(u)}
   render()}
+async function refreshFromCloud(){if(!sb||!S.user)return;
+  try{const {data,error}=await sb.from('user_dashboards').select('categories,dark').eq('user_id',S.user.id).maybeSingle();
+    if(!error&&data&&data.categories){S.cats=data.categories;if(typeof data.dark==='boolean')S.dark=data.dark;wr(dk(S.user),{cats:S.cats,dark:S.dark});render()}
+  }catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshFromCloud()});
+window.addEventListener('focus',refreshFromCloud);
 function showGate(){renderGate('in');$('#gate').classList.add('show')}
 function hideGate(){$('#gate').classList.remove('show')}
 if(sb)sb.auth.onAuthStateChange((ev,ses)=>{const u=mk(ses&&ses.user);
