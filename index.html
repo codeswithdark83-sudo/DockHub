@@ -280,8 +280,8 @@ $('#addBm').onclick=()=>bmModal();$('#bb').onclick=()=>bmModal();
 $('#addCat').onclick=catModal;$('#bc').onclick=catModal;
 $('#bq').onclick=()=>{scrollTo({top:0,behavior:'smooth'});$('#q').focus()};
 /* ---- SUPABASE CONFIG: paste your project values (Project Settings > API) ---- */
-const SUPABASE_URL='YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL='https://rtdhwjkpdowprwwpoord.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_LFFLmBtG-adRQVqrE2s_Pg_z_o1sOZO';
 const ADMIN='codeswithdark83@gmail.com'; /* cosmetic only: the server enforces admin in supabase-setup.sql */
 const sb=(window.supabase&&!/YOUR_/.test(SUPABASE_URL))?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 const REDIR=location.href.split('#')[0].split('?')[0];
