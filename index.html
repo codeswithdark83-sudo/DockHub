@@ -119,6 +119,7 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 </nav>
 <div class="ov" id="ov"><div class="mod" id="mod"></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -137,8 +138,8 @@ const cp=o=>JSON.parse(JSON.stringify(o));
 let S={cats:cp(DEF),dark:true,user:null},q='';
 const dk=u=>u?'dockhub_u_'+u.email:'dockhub';
 function load(u){S.user=u;const d=rd(dk(u));S.cats=d&&d.cats?d.cats:cp(DEF);if(d&&typeof d.dark==='boolean')S.dark=d.dark}
-const save=()=>{wr(dk(S.user),{cats:S.cats,dark:S.dark});wr('dockhub_session',S.user)};
-load(rd('dockhub_session'));
+const save=()=>{wr(dk(S.user),{cats:S.cats,dark:S.dark});sync()};
+load(null);
 const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
 const norm=u=>{u=u.trim();if(!u)return '';return /^https?:\/\//i.test(u)?u:'https://'+u};
 const nice=u=>{const h=host(u).split('.');const n=h.length>1?h[h.length-2]:h[0]||'';return n?n[0].toUpperCase()+n.slice(1):''};
@@ -278,36 +279,46 @@ $('#theme').onclick=tg;$('#bt').onclick=tg;
 $('#addBm').onclick=()=>bmModal();$('#bb').onclick=()=>bmModal();
 $('#addCat').onclick=catModal;$('#bc').onclick=catModal;
 $('#bq').onclick=()=>{scrollTo({top:0,behavior:'smooth'});$('#q').focus()};
-const b64=a=>btoa(String.fromCharCode(...new Uint8Array(a)));
-const unb=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function hashPw(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:150000},k,256))}
-const users=()=>rd('dockhub_users')||{};
+/* ---- SUPABASE CONFIG: paste your project values (Project Settings > API) ---- */
+const SUPABASE_URL='YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY';
+const ADMIN='codeswithdark83@gmail.com'; /* cosmetic only: the server enforces admin in supabase-setup.sql */
+const sb=(window.supabase&&!/YOUR_/.test(SUPABASE_URL))?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const REDIR=location.href.split('#')[0].split('?')[0];
 const GLOGO='<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.500 3.1-7.500z"/><path fill="#34A853" d="M12 22c2.800 0 5.100-.9 6.800-2.500l-3.300-2.600c-.9.600-2.100 1-3.500 1-2.700 0-5-1.800-5.800-4.300H2.800v2.700A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.200 13.600a6 6 0 0 1 0-3.800V7.100H2.800a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.900.5 4 1.600l3-3A10 10 0 0 0 2.800 7.100l3.400 2.700C7 7.700 9.300 5.900 12 5.900z"/></svg>';
-const ADMIN='codeswithdark83@gmail.com';
 const isAdmin=()=>!!S.user&&S.user.email===ADMIN;
-const getDb=async()=>{try{return window.claude?await claude.use('db'):null}catch(e){return null}};
-async function register(u,isNew){
-  try{const db=await getDb();if(!db)return;
-    const ref=db.doc('registry/'+u.email.replace(/[^a-z0-9]/g,'_')),now=Date.now();
-    if(isNew)await ref.set({email:u.email,name:u.name,provider:u.provider,joined:now,lastSeen:now});
-    else try{await ref.update({name:u.name,lastSeen:now})}catch(e){await ref.set({email:u.email,name:u.name,provider:u.provider,joined:now,lastSeen:now})}
-  }catch(e){}}
-function finish(u){const isNew=!!u.fresh;if(u.fresh){delete u.fresh}else load(u);S.user=u;save();closeModal();render();register(u,isNew)}
+let syncT;
+function sync(){if(!sb||!S.user)return;clearTimeout(syncT);syncT=setTimeout(async()=>{try{await sb.from('dashboards').upsert({user_id:S.user.id,data:{cats:S.cats,dark:S.dark},updated_at:new Date().toISOString()})}catch(e){}},700)}
+const mk=u=>u?{id:u.id,email:(u.email||'').toLowerCase(),name:(u.user_metadata&&(u.user_metadata.name||u.user_metadata.full_name))||(u.email||'').split('@')[0],provider:(u.app_metadata&&u.app_metadata.provider)||'email'}:null;
+async function applyUser(u){
+  if(!u){load(null);render();return}
+  S.user=u;
+  try{const {data}=await sb.from('dashboards').select('data').eq('user_id',u.id).maybeSingle();
+    if(data&&data.data&&data.data.cats){S.cats=data.data.cats;if(typeof data.data.dark==='boolean')S.dark=data.data.dark}
+    save()}catch(e){}
+  render()}
+if(sb)sb.auth.onAuthStateChange((ev,ses)=>{const u=mk(ses&&ses.user);
+  if(u&&(!S.user||S.user.id!==u.id))setTimeout(()=>applyUser(u),0);
+  else if(!u&&S.user)setTimeout(()=>applyUser(null),0)});
+
 async function adminModal(){
   openModal('<h3>Admin dashboard</h3><p class="note">Loading users…</p>');$('#mod').style.maxWidth='760px';
   let rows=null,err='';
-  try{const db=await getDb();if(!db)err='Shared database is unavailable in this view.';else rows=(await db.collection('registry').orderBy('joined','desc').limit(500).get()).docs.map(d=>d.data())}
-  catch(e){err='Could not read the user registry ('+(e&&e.code||'error')+'). Only the artifact owner or an Editor can read it.'}
-  const local=Object.entries(users()),wk=Date.now()-6048e5,f=t=>t?new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'–';
+  try{const {data,error}=await sb.rpc('admin_list_users');if(error)throw error;
+    rows=data.map(r=>({name:r.name,email:r.email,provider:r.provider,joined:Date.parse(r.created_at),lastSeen:r.last_sign_in_at?Date.parse(r.last_sign_in_at):0}))}
+  catch(e){err='Could not load users: '+((e&&e.message)||'error')+'. Only the admin account can view this.'}
+  const wk=Date.now()-6048e5,f=t=>t?new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'–',td='padding:8px 6px';
   const stat=(n,l)=>`<div class="prev" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;margin:0"><b style="font-size:22px">${n}</b><span style="color:var(--mut);font-size:12px">${l}</span></div>`;
   let h='<h3>Admin dashboard</h3>';
-  if(rows){h+=`<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length,'Total users')}${stat(rows.filter(r=>r.lastSeen>wk).length,'Active (7 days)')}${stat(rows.filter(r=>r.provider==='google').length,'Via Google')}</div>
-   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last active</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="padding:8px 6px">${esc(r.name||'')}</td><td style="padding:8px 6px">${esc(r.email||'')}</td><td style="padding:8px 6px">${esc(r.provider||'')}</td><td style="padding:8px 6px;white-space:nowrap">${f(r.joined)}</td><td style="padding:8px 6px;white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('')||'<tr><td colspan="5" style="padding:14px;color:var(--mut)">No registered users yet.</td></tr>'}</tbody></table></div>`}
+  if(rows){h+=`<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length,'Total users')}${stat(rows.filter(r=>r.lastSeen>wk).length,'Active (7 days)')}${stat(rows.filter(r=>r.joined>wk).length,'New (7 days)')}${stat(rows.filter(r=>r.provider==='google').length,'Via Google')}</div>
+   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last sign-in</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="${td}">${esc(r.name||'')}</td><td style="${td}">${esc(r.email||'')}</td><td style="${td}">${esc(r.provider||'')}</td><td style="${td};white-space:nowrap">${f(r.joined)}</td><td style="${td};white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('')||'<tr><td colspan="5" style="padding:14px;color:var(--mut)">No users yet.</td></tr>'}</tbody></table></div>`}
   else h+=`<div class="err">${esc(err)}</div>`;
-  h+=`<p class="note">Accounts created in this browser: ${local.length}. Sign-ups are recorded in the shared registry only when the visitor is allowed to write to it (see setup notes).</p><div class="mf"><button class="btn p" data-x>Close</button></div>`;
+  h+=`<div class="mf">${rows?'<button class="btn" id="csv">⬇ Export CSV</button>':''}<button class="btn p" data-x>Close</button></div>`;
   $('#mod').innerHTML=h;
+  if(rows)$('#csv').onclick=()=>{const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const t=['Name,Email,Method,Joined,Last sign-in',...rows.map(r=>[r.name,r.email,r.provider,new Date(r.joined).toISOString(),r.lastSeen?new Date(r.lastSeen).toISOString():''].map(q).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='dockhub-users.csv';a.click()};
 }
 function authModal(mode='in'){
+  if(!sb){openModal(`<h3>Set up Supabase</h3><p class="note">Sign-in is not configured yet. Open <code>index.html</code>, paste your <b>SUPABASE_URL</b> and <b>SUPABASE_ANON_KEY</b>, and run <code>supabase-setup.sql</code>. See the README for the full steps.</p><div class="mf"><button class="btn p" data-x>OK</button></div>`);return}
   const up=mode==='up';
   openModal(`<h3>${up?'Create your account':'Welcome back'}</h3>
    <button class="btn gbtn" id="gg">${GLOGO} Continue with Google</button><div class="or">or use email</div>
@@ -316,47 +327,32 @@ function authModal(mode='in'){
    <label>Password${up?' (min 8 characters)':''}</label><input id="ap" type="password" autocomplete="${up?'new-password':'current-password'}">
    <div class="err" id="er"></div>
    <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">${up?'Sign up':'Sign in'}</button></div>
-   <p class="sw">${up?'Have an account?':'New here?'} <a id="sw">${up?'Sign in':'Create an account'}</a></p>`);
-  $('#sw').onclick=()=>authModal(up?'in':'up');$('#gg').onclick=googleModal;
+   <p class="sw">${up?'Have an account?':'New here?'} <a id="sw">${up?'Sign in':'Create an account'}</a>${up?'':' · <a id="fp">Forgot password?</a>'}</p>`);
   const er=m=>$('#er').textContent=m;
-  const go=async()=>{const email=$('#ae').value.trim().toLowerCase(),pw=$('#ap').value,name=up?$('#an').value.trim():'';
+  $('#sw').onclick=()=>authModal(up?'in':'up');
+  $('#gg').onclick=async()=>{const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:REDIR}});if(error)er(error.message)};
+  if(!up)$('#fp').onclick=async()=>{const email=$('#ae').value.trim();if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter your email above first.');
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:REDIR});er(error?error.message:'Password reset email sent.')};
+  const go=async()=>{const email=$('#ae').value.trim().toLowerCase(),pw=$('#ap').value,name=up?$('#an').value.trim():'';er('');
     if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter a valid email address.');
     if(up&&!name)return er('Please enter your name.');
-    if(pw.length<8&&up)return er('Password must be at least 8 characters.');
+    if(up&&pw.length<8)return er('Password must be at least 8 characters.');
     if(!pw)return er('Enter your password.');
-    const all=users(),acc=all[email];
+    $('#ok').disabled=true;
     try{
-      if(up){if(acc)return er('An account with this email already exists.');
-        const salt=crypto.getRandomValues(new Uint8Array(16));all[email]={name,salt:b64(salt),hash:await hashPw(pw,salt),provider:'email'};wr('dockhub_users',all);
-        finish({email,name,provider:'email',fresh:1})}
-      else{if(!acc||!acc.hash)return er(acc?'This email uses Google sign-in.':'No account found for this email.');
-        if(await hashPw(pw,unb(acc.salt))!==acc.hash)return er('Incorrect password.');
-        finish({email,name:acc.name,provider:'email'})}
-    }catch(e){er('Sign-in is unavailable in this browser.')}};
-  $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
-}
-function googleModal(){
-  openModal(`<h3 style="display:flex;align-items:center;gap:10px">${GLOGO} Choose a Google account</h3>
-   <p class="note">Demo mode: real Google OAuth needs your own Google client ID and a server. Enter any details to try the flow.</p>
-   <label>Name</label><input id="gn"><label>Gmail address</label><input id="ge" type="email" placeholder="you@gmail.com">
-   <div class="err" id="er"></div>
-   <div class="mf"><button class="btn" id="bk">Back</button><button class="btn p" id="ok">Continue</button></div>`);
-  $('#bk').onclick=()=>authModal('in');
-  const go=()=>{const email=$('#ge').value.trim().toLowerCase(),name=$('#gn').value.trim()||email.split('@')[0];
-    if(!/^\S+@\S+\.\S+$/.test(email))return $('#er').textContent='Enter a valid email address.';
-    const all=users(),acc=all[email];
-    if(acc&&acc.provider==='email')return $('#er').textContent='This email has a password account. Sign in with your password.';
-    const isNew=!acc;if(isNew){all[email]={name,provider:'google'};wr('dockhub_users',all)}
-    finish({email,name:isNew?name:acc.name,provider:'google',fresh:isNew?1:0})};
+      if(up){const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{name},emailRedirectTo:REDIR}});if(error)throw error;
+        if(data.session)closeModal();else $('#mod').innerHTML=`<h3>Check your inbox</h3><p class="note">We sent a confirmation link to ${esc(email)}. Confirm it, then sign in.</p><div class="mf"><button class="btn p" data-x>OK</button></div>`}
+      else{const {error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;closeModal()}
+    }catch(e){er(e.message||'Something went wrong.');const o=$('#ok');if(o)o.disabled=false}};
   $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
 }
 $('#user').onclick=()=>{
   if(!S.user)return authModal('in');
   openModal(`<h3>Your account</h3><div class="prev"><div class="av on" style="width:40px;height:40px">${esc($('#user').textContent)}</div><div><b>${esc(S.user.name)}</b><div style="color:var(--mut);font-size:12px">${esc(S.user.email)} · ${S.user.provider==='google'?'Google':'Email'}</div></div></div>
-   <p class="note">Your bookmarks are saved to this account on this device.</p>
+   <p class="note">Your bookmarks sync to this account across devices.</p>
    <div class="mf">${isAdmin()?'<button class="btn" id="ad">🛡 Admin dashboard</button>':''}<button class="btn" data-x>Close</button><button class="btn p" id="so">Sign out</button></div>`);
   if(isAdmin())$('#ad').onclick=adminModal;
-  $('#so').onclick=()=>{save();wr('dockhub_session',null);load(null);closeModal();render()};
+  $('#so').onclick=async()=>{closeModal();await sb.auth.signOut();applyUser(null)};
 };
 render();
 </script>
