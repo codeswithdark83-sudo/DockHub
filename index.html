@@ -4,13 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DockHub</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%237c8cff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23b16cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cg transform=%22translate%284.5 4.5%29 scale%28.96%29%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%223%22 y=%223%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Crect x=%2214%22 y=%223%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Crect x=%223%22 y=%2214%22 width=%227%22 height=%227%22 rx=%222%22/%3E%3Cpath d=%22M14 17.5h7M17.5 14v7%22/%3E%3C/g%3E%3C/svg%3E">
 <meta name="theme-color" content="#0b0d12">
-<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DockHub">
+<link rel="manifest" id="pwa-manifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -104,26 +103,22 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 .bn span{font-size:18px}}
 
 /* ---------- Splash Screen ---------- */
-#splash{
-  position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);
-  transition: opacity .4s ease, visibility .4s;
-  pointer-events: none;
-}
+#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);transition:opacity .5s ease,visibility .5s}
 #splash::before{content:"";position:fixed;inset:0;background:radial-gradient(700px 500px at 20% 0%,rgba(124,140,255,.25),transparent),radial-gradient(600px 500px at 85% 100%,rgba(177,108,255,.2),transparent)}
-.s-logo{position:relative;width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;box-shadow:0 12px 40px var(--glow);animation:sPop .6s cubic-bezier(.2,.9,.25,1.3) both}
+.s-logo{position:relative;width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;box-shadow:0 12px 40px var(--glow);animation:sPop .7s cubic-bezier(.2,.9,.25,1.3) both}
 .s-logo svg{width:42px;height:42px}
-.s-name{position:relative;font-size:26px;font-weight:700;letter-spacing:-.02em;opacity:0;animation:sFade .5s ease .2s forwards}
-.s-tag{position:relative;font-size:13px;color:var(--mut);opacity:0;animation:sFade .5s ease .4s forwards}
-.s-ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(255,255,255,.55);animation:sSpin 1.1s linear infinite}
+.s-name{position:relative;font-size:26px;font-weight:700;letter-spacing:-.02em;opacity:0;animation:sFade .5s ease .3s forwards}
+.s-tag{position:relative;font-size:13px;color:var(--mut);opacity:0;animation:sFade .5s ease .5s forwards}
+.s-ring{position:absolute;inset:-14px;border-radius:30px;border:2px solid transparent;border-top-color:rgba(255,255,255,.55);animation:sSpin 1.1s linear infinite}
 @keyframes sPop{0%{opacity:0;transform:scale(.4) rotate(-25deg)}70%{transform:scale(1.08) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes sFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes sSpin{to{transform:rotate(360deg)}}
 #splash.out{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 
 /* ---------- Mandatory Login Gate ---------- */
-.gate{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:rgba(11,13,18,.92);backdrop-filter:blur(16px);padding:24px;overflow:auto}
+.gate{position:fixed;inset:0;z-index:150;display:none;place-items:center;background:var(--bg);padding:24px;overflow:auto}
 .gate.show{display:grid}
-.gbox{width:100%;max-width:380px;text-align:center;animation:in .4s both;background:var(--bg2);padding:28px 22px;border-radius:24px;border:1px solid var(--bd);box-shadow:var(--sh)}
+.gbox{width:100%;max-width:380px;text-align:center;animation:in .4s both}
 .gbox .logo{width:56px;height:56px;margin:0 auto 14px;border-radius:16px}
 .gbox h2{font-size:20px;margin-bottom:6px}
 .gbox p.lead{color:var(--mut);font-size:13px;margin-bottom:20px;line-height:1.5}
@@ -169,7 +164,7 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 <div class="ov" id="ov"><div class="mod" id="mod"></div></div>
 <div class="gate" id="gate"><div class="gbox" id="gbox"></div></div>
 
-<!-- Welcome Splash Animation -->
+<!-- Welcome Animation -->
 <div id="splash">
   <div class="s-logo"><div class="s-ring"></div><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M14 17.5h7M17.5 14v7"/></svg></div>
   <div class="s-name">DockHub</div>
@@ -178,21 +173,37 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
-// --- Guaranteed Splash Dismissal ---
-function dismissSplash() {
+// Auto dismiss splash immediately after max 1.2s to prevent freezing
+function closeSplashNow() {
   const sp = document.getElementById('splash');
-  if (sp && !sp.classList.contains('out')) {
+  if (sp) {
     sp.classList.add('out');
-    setTimeout(() => { try { sp.remove(); } catch(e){} }, 450);
+    setTimeout(() => { try { sp.remove(); } catch(e){} }, 500);
   }
 }
-setTimeout(dismissSplash, 900);
+setTimeout(closeSplashNow, 1200);
 
-// --- Register Service Worker Cleanly ---
+// --- Embedded PWA Manifest & Service Worker ---
+const manifestData = {
+  name: "DockHub - Workspace",
+  short_name: "DockHub",
+  start_url: "/",
+  display: "standalone",
+  background_color: "#0b0d12",
+  theme_color: "#0b0d12",
+  icons: [{
+    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%237c8cff'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='96' fill='%23fff' font-family='sans-serif' font-weight='bold'%3ED%3C/text%3E%3C/svg%3E",
+    sizes: "192x192",
+    type: "image/svg+xml"
+  }]
+};
+const mBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(mBlob));
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
+  const swCode = `self.addEventListener('fetch', e => {});`;
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
 }
 
 // --- App State & Defaults ---
@@ -217,20 +228,21 @@ const dk = u => u ? 'dockhub_u_' + u.email : 'dockhub';
 function load(u) {
   S.user = u;
   const d = rd(dk(u));
-  S.cats = d && Array.isArray(d.cats) && d.cats.length ? d.cats : cp(DEF);
+  S.cats = d && d.cats ? d.cats : cp(DEF);
   if (d && typeof d.dark === 'boolean') S.dark = d.dark;
 }
+const save = () => { wr(dk(S.user), { cats: S.cats, dark: S.dark }); sync(); };
+load(null);
 
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return ''; } };
 const norm = u => { u = (u || '').trim(); if (!u) return ''; return /^https?:\/\//i.test(u) ? u : 'https://' + u; };
 const nice = u => { const h = host(u).split('.'); const n = h.length > 1 ? h[h.length - 2] : h[0] || ''; return n ? n[0].toUpperCase() + n.slice(1) : ''; };
 const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
 
-// High-Res SVG Brand Logos
+// Vector SVG Logos for top platforms
 const W = '#fff', ST = (d, c = W, w = 2) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const LOGOS = {
 'facebook.com': ['#1877F2', '<path d="M14 13.5h2.5l1-4H14v-2c0-1.03.3-2 2-2h1.5V2.14c-.8-.11-1.8-.14-2.8-.14-3.5 0-5.7 2.1-5.7 6.1v3.4H6v4h3v9.5c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V13.5z" fill="#fff"/>'],
-'unstop.com': ['#1C49C2', '<path d="M8 7v6c0 3 1.8 5 4 5s4-2 4-5V7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="10" r="1.3" fill="#fff"/>'],
 'mail.google.com': ['#EA4335', ST('M4 7l8 6 8-6M4 7v10h16V7z')],
 'drive.google.com': ['#fff', '<path d="M8 4h8l6 10h-8z" fill="#FBBC04"/><path d="M8 4L2 14l4 6 6-10z" fill="#0F9D58"/><path d="M6 20h16l-4-6H2z" fill="#4285F4"/>'],
 'calendar.google.com': ['#4285F4', '<rect x="4" y="5" width="16" height="15" rx="2" fill="#fff"/><rect x="4" y="5" width="16" height="4.5" rx="1" fill="#EA4335"/>' + ST('M8 13h3M13 13h3M8 16.5h3', '#4285F4', 1.8)],
@@ -257,6 +269,7 @@ const brand = u => {
   return LOGOS[h] || LOGOS[Object.keys(LOGOS).find(k => h === k || h.endsWith('.' + k))];
 };
 
+// Auto Favicon Fetcher with Fallback Initials
 const fav = (t, u, logo) => {
   const b = brand(u);
   if (b) return `<div class="fav" style="background:${b[0]};${b[0]==='#fff'?'border:1px solid rgba(0,0,0,.1)':''}"><svg viewBox="0 0 24 24">${b[1]}</svg></div>`;
@@ -275,39 +288,37 @@ function render() {
   $('#theme').textContent = S.dark ? '🌙' : '☀️';
   const u = $('#user');
   u.className = 'av' + (S.user ? ' on' : '');
-  const displayName = S.user ? (S.user.name || S.user.email || 'User') : '👤';
-  u.textContent = S.user ? displayName.split(/\s+/).filter(Boolean).map(w => w[0]).join('').slice(0,2).toUpperCase() : '👤';
+  u.textContent = S.user ? S.user.name.split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase() : '👤';
   u.title = S.user ? S.user.email : 'Sign in';
 
   const ql = q.trim().toLowerCase();
   let html = '', shown = 0;
+  if (ql) html += `<button class="web" data-web>🔎 <span>Search the web for <b>“${esc(q.trim())}”</b></span></button>`;
   
-  if (Array.isArray(S.cats)) {
-    S.cats.forEach((c, ci) => {
-      const its = ql ? (c.items||[]).filter(i => (i.title + host(i.url)).toLowerCase().includes(ql)) : (c.items||[]);
-      if (ql && !its.length) return;
-      shown++;
-      html += `<section class="cat ${c.open || ql ? '' : 'closed'}" data-c="${c.id}" draggable="true" style="animation-delay:${ci*60}ms">
-        <div class="ch">
-          <span class="grip" title="Drag to reorder category">⠿</span>
-          <button class="ci" data-act="icon" title="Change icon">${c.icon}</button>
-          <div class="ct" contenteditable="true" spellcheck="false" data-act="title">${esc(c.name)}</div>
-          <span class="cnt">${(c.items||[]).length}</span>
-          <button class="dots" data-act="delcat" title="Delete category" style="opacity:.6">🗑</button>
-          <button class="dots o chev" data-act="toggle" style="opacity:1">▾</button>
-        </div>
-        <div class="body"><div><div class="items">${its.map((i, k) => `
-          <a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" draggable="true" data-b="${i.id}" style="animation-delay:${k*40}ms">
-            ${fav(i.title, i.url, i.logo)}
-            <div class="nm">${esc(i.title)}<small>${esc(host(i.url))}</small></div>
-            <button class="dots" data-act="menu" aria-label="Menu">⋮</button>
-          </a>`).join('')}
-          <button class="addm" data-act="add">+ Add bookmark</button></div></div></div></section>`;
-    });
-  }
+  S.cats.forEach((c, ci) => {
+    const its = ql ? c.items.filter(i => (i.title + host(i.url)).toLowerCase().includes(ql)) : c.items;
+    if (ql && !its.length) return;
+    shown++;
+    html += `<section class="cat ${c.open || ql ? '' : 'closed'}" data-c="${c.id}" draggable="true" style="animation-delay:${ci*60}ms">
+      <div class="ch">
+        <span class="grip" title="Drag to reorder category">⠿</span>
+        <button class="ci" data-act="icon" title="Change icon">${c.icon}</button>
+        <div class="ct" contenteditable="true" spellcheck="false" data-act="title">${esc(c.name)}</div>
+        <span class="cnt">${c.items.length}</span>
+        <button class="dots" data-act="delcat" title="Delete category" style="opacity:.6">🗑</button>
+        <button class="dots o chev" data-act="toggle" style="opacity:1">▾</button>
+      </div>
+      <div class="body"><div><div class="items">${its.map((i, k) => `
+        <a class="card" href="${esc(i.url)}" target="_blank" rel="noopener" draggable="true" data-b="${i.id}" style="animation-delay:${k*40}ms">
+          ${fav(i.title, i.url, i.logo)}
+          <div class="nm">${esc(i.title)}<small>${esc(host(i.url))}</small></div>
+          <button class="dots" data-act="menu" aria-label="Menu">⋮</button>
+        </a>`).join('')}
+        <button class="addm" data-act="add">+ Add bookmark</button></div></div></div></section>`;
+  });
   
   const webBtn = ql ? `<button class="web" data-web>🔎 <span>Search the web for <b>“${esc(q.trim())}”</b></span></button>` : '';
-  $('#root').innerHTML = webBtn + `<div class="grid">${html}</div>` + (!S.cats.length ? '<div class="empty">No categories yet — click + Add Category to start.</div>' : ql && !shown ? '<div class="empty">No bookmarks match. Press Enter to search the web.</div>' : '');
+  $('#root').innerHTML = webBtn + `<div class="grid">${html.replace(/<button class="web"[\s\S]*?<\/button>/,'')}</div>` + (!S.cats.length ? '<div class="empty">No categories yet — add one to get started.</div>' : ql && !shown ? '<div class="empty">No bookmarks match. Press Enter to search the web.</div>' : '');
 }
 
 const find = id => S.cats.find(c => c.id === id);
@@ -315,12 +326,13 @@ function closeMenus() { document.querySelectorAll('.menu').forEach(m => m.remove
 function openModal(h) { $('#mod').style.maxWidth = ''; $('#mod').innerHTML = h; $('#ov').classList.add('s'); const f = $('#mod input'); f && setTimeout(() => f.focus(), 50); }
 function closeModal() { $('#ov').classList.remove('s'); }
 
+// Bookmark Modal with Automatic Favicon Preview
 function bmModal(catId, edit) {
   if (!S.cats.length) { catModal(); return; }
   const b = edit ? find(edit.c).items.find(i => i.id === edit.b) : null;
   const cur = edit ? edit.c : (catId || S.cats[0].id);
   openModal(`<h3>${b ? 'Edit bookmark' : 'Add bookmark'}</h3>
-   <label>URL</label><input id="fu" placeholder="e.g. unstop.com" value="${b ? esc(b.url) : ''}">
+   <label>URL</label><input id="fu" placeholder="e.g. facebook.com" value="${b ? esc(b.url) : ''}">
    <div class="prev" id="pv"></div>
    <label>Nickname / title <span style="opacity:.6">(auto-filled from URL)</span></label><input id="ft" value="${b ? esc(b.title) : ''}">
    <label>Custom logo <span style="opacity:.6">(optional — auto-detected for any link)</span></label><div style="display:flex;gap:8px"><input id="fl" type="file" accept="image/*"><button class="btn" id="rl" type="button">Clear</button></div>
@@ -347,7 +359,7 @@ function bmModal(catId, edit) {
     const f = e.target.files[0]; if (!f) return;
     const im = new Image(), url = URL.createObjectURL(f);
     im.onload = () => {
-      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+      const c = document.createElement('canvas'); c.width = c.height = 64;
       const x = c.getContext('2d'), m = Math.min(im.width, im.height);
       x.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, 64, 64);
       customLogo = c.toDataURL('image/png'); URL.revokeObjectURL(url); pv();
@@ -363,6 +375,8 @@ function bmModal(catId, edit) {
     const h = host(u);
     if (!h) { fu.focus(); fu.style.borderColor = '#f87171'; return; }
     const t = ft.value.trim() || nice(u), to = $('#fc').value;
+    
+    // Auto-detect and permanently assign logo if not custom
     const finalLogo = customLogo || (brand(u) ? undefined : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`);
 
     if (b) {
@@ -370,7 +384,7 @@ function bmModal(catId, edit) {
       from.items = from.items.filter(i => i.id !== b.id);
       find(to).items.push({ id: b.id, title: t, url: u, logo: finalLogo });
     } else {
-      find(to).items.push({...B(t, u, finalLogo)});
+      find(to).items.push({ ...B(t, u, finalLogo) });
     }
     save(); closeModal(); render();
   };
@@ -502,39 +516,29 @@ $('#addBm').onclick = () => bmModal(); $('#bb').onclick = () => bmModal();
 $('#addCat').onclick = catModal; $('#bc').onclick = catModal;
 $('#bq').onclick = () => { scrollTo({ top: 0, behavior: 'smooth' }); $('#q').focus(); };
 
-/* ---- SUPABASE CONFIG & CLOUD PERSISTENCE ---- */
+/* ---- SUPABASE CONFIG & CLOUD SYNC ---- */
 const SUPABASE_URL = 'https://rtdhwjkpdowprwwpoord.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LFFLmBtG-adRQVqrE2s_Pg_z_o1sOZO';
 const ADMIN = 'codeswithdark83@gmail.com';
-const sb = (window.supabase && typeof window.supabase.createClient === 'function')
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+const sb = (window.supabase && !/YOUR_/.test(SUPABASE_URL)) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const REDIR = window.location.origin;
 const GLOGO = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.500 3.1-7.500z"/><path fill="#34A853" d="M12 22c2.800 0 5.100-.9 6.800-2.500l-3.300-2.600c-.9.600-2.100 1-3.500 1-2.700 0-5-1.800-5.800-4.300H2.800v2.700A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.200 13.600a6 6 0 0 1 0-3.800V7.100H2.800a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.900.5 4 1.600l3-3A10 10 0 0 0 2.800 7.100l3.400 2.700C7 7.700 9.300 5.900 12 5.900z"/></svg>';
 const isAdmin = () => !!S.user && S.user.email === ADMIN;
 
-// Reliable Sync to Supabase
-let syncTimer = null;
+let syncDebounce;
 function sync() {
-  wr(dk(S.user), { cats: S.cats, dark: S.dark });
   if (!sb || !S.user) return;
-  
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(async () => {
+  clearTimeout(syncDebounce);
+  syncDebounce = setTimeout(async () => {
     try {
-      const { error } = await sb.from('user_dashboards').upsert({
+      await sb.from('user_dashboards').upsert({
         user_id: S.user.id,
         categories: S.cats,
         updated_at: new Date().toISOString()
       });
-      if (error) console.error('Cloud save failed:', error.message);
-      else console.log('DockHub: Bookmarks successfully synced to cloud.');
-    } catch (e) {
-      console.error('Cloud sync exception:', e);
-    }
-  }, 350);
+    } catch (e) { console.error('DockHub sync error:', e); }
+  }, 600);
 }
-const save = () => sync();
 
 const mk = u => u ? {
   id: u.id,
@@ -543,31 +547,8 @@ const mk = u => u ? {
   provider: (u.app_metadata && u.app_metadata.provider) || 'google'
 } : null;
 
-// Fetch latest from Supabase on Login or Device Switch
-async function fetchCloudData(u) {
-  if (!sb || !u) return;
-  try {
-    const { data, error } = await sb.from('user_dashboards').select('categories').eq('user_id', u.id).maybeSingle();
-    if (error) throw error;
-    if (data && Array.isArray(data.categories) && data.categories.length > 0) {
-      S.cats = data.categories;
-      wr(dk(u), { cats: S.cats, dark: S.dark });
-      render();
-    } else {
-      // First time save for new account
-      await sb.from('user_dashboards').upsert({
-        user_id: u.id,
-        categories: S.cats,
-        updated_at: new Date().toISOString()
-      });
-    }
-  } catch (e) {
-    console.error('Fetch cloud data error:', e);
-  }
-}
-
 async function applyUser(u) {
-  dismissSplash();
+  closeSplashNow();
   if (!u) {
     load(null);
     render();
@@ -576,24 +557,38 @@ async function applyUser(u) {
   }
   hideGate();
   S.user = u;
+  try {
+    const { data, error } = await sb.from('user_dashboards').select('categories').eq('user_id', u.id).maybeSingle();
+    if (error) throw error;
+    if (data && Array.isArray(data.categories) && data.categories.length) {
+      S.cats = data.categories;
+    } else {
+      await sb.from('user_dashboards').upsert({
+        user_id: u.id,
+        categories: S.cats,
+        updated_at: new Date().toISOString()
+      });
+    }
+    wr(dk(u), { cats: S.cats, dark: S.dark });
+  } catch (e) {
+    console.error('DockHub fetch error:', e);
+    load(u);
+  }
   render();
-  await fetchCloudData(u);
 }
 
-function showGate() { renderGate('in'); $('#gate').classList.add('show'); dismissSplash(); }
+function showGate() { renderGate('in'); $('#gate').classList.add('show'); closeSplashNow(); }
 function hideGate() { $('#gate').classList.remove('show'); }
-
-// Cross-device auto sync when user switches tabs or focuses browser
-window.addEventListener('focus', () => { if (S.user) fetchCloudData(S.user); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.user) fetchCloudData(S.user); });
 
 if (sb) {
   sb.auth.onAuthStateChange((ev, ses) => {
     const u = mk(ses && ses.user);
     if (u) {
-      if (!S.user || S.user.id !== u.id) applyUser(u);
+      hideGate();
+      if (!S.user || S.user.id !== u.id) setTimeout(() => applyUser(u), 0);
     } else {
-      applyUser(null);
+      if (S.user) setTimeout(() => applyUser(null), 0);
+      else showGate();
     }
   });
 }
@@ -614,7 +609,7 @@ async function adminModal() {
     h += `<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length, 'Total users')}${stat(rows.filter(r => r.lastSeen > wk).length, 'Active (7 days)')}${stat(rows.filter(r => r.joined > wk).length, 'New (7 days)')}${stat(rows.filter(r => r.provider === 'google').length, 'Via Google')}</div>
      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last sign-in</th></tr></thead><tbody>${rows.map(r => `<tr style="border-top:1px solid var(--bd)"><td style="${td}">${esc(r.name || '')}</td><td style="${td}">${esc(r.email || '')}</td><td style="${td}">${esc(r.provider || '')}</td><td style="${td};white-space:nowrap">${f(r.joined)}</td><td style="${td};white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('') || '<tr><td colspan="5" style="padding:14px;color:var(--mut)">No users yet.</td></tr>'}</tbody></table></div>`;
   } else { h += `<div class="err">${esc(err)}</div>`; }
-  h += `<div class="mf">${rows ? '<button class="btn" id="csv">⬇ Export CSV</button> : ''}<button class="btn p" data-x>Close</button></div>`;
+  h += `<div class="mf">${rows ? '<button class="btn" id="csv">⬇ Export CSV</button>' : ''}<button class="btn p" data-x>Close</button></div>`;
   $('#mod').innerHTML = h;
   if (rows) $('#csv').onclick = () => { const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; const t = ['Name,Email,Method,Joined,Last sign-in', ...rows.map(r => [r.name, r.email, r.provider, new Date(r.joined).toISOString(), r.lastSeen ? new Date(r.lastSeen).toISOString() : ''].map(q).join(','))].join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/csv' })); a.download = 'dockhub-users.csv'; a.click(); };
 }
@@ -693,22 +688,12 @@ async function installApp() {
 $('#install').onclick = installApp;
 if ($('#bi')) $('#bi').onclick = installApp;
 
-/* ---------- Immediate Boot Execution ---------- */
-load(null);
+/* ---------- Immediate Boot Flow ---------- */
 render();
-
-// Remove Google OAuth redirect token hash from address bar cleanly
-if (window.location.hash && window.location.hash.includes('access_token')) {
-  history.replaceState(null, '', window.location.pathname);
-}
-
 if (sb) {
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session && session.user) {
-      applyUser(mk(session.user));
-    } else {
-      showGate();
-    }
+    if (session && session.user) applyUser(mk(session.user));
+    else showGate();
   }).catch(() => showGate());
 } else {
   showGate();
