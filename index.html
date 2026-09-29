@@ -173,7 +173,7 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
-// Prevent splash screen freeze on any device
+// Prevent splash freeze on any device
 function dismissSplash() {
   const sp = document.getElementById('splash');
   if (sp) {
@@ -231,7 +231,35 @@ function load(u) {
   S.cats = d && d.cats ? d.cats : cp(DEF);
   if (d && typeof d.dark === 'boolean') S.dark = d.dark;
 }
-const save = () => { wr(dk(S.user), { cats: S.cats, dark: S.dark }); sync(); };
+
+// Cloud sync function (Instant push + Local storage fallback)
+let syncDebounce;
+function sync(immediate = false) {
+  wr(dk(S.user), { cats: S.cats, dark: S.dark });
+  if (!sb || !S.user) return;
+  
+  clearTimeout(syncDebounce);
+  const doPush = async () => {
+    try {
+      const { error } = await sb.from('user_dashboards').upsert({
+        user_id: S.user.id,
+        categories: S.cats,
+        dark: S.dark,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+      if (error) console.error('Supabase sync error:', error.message);
+      else console.log('DockHub: Cloud sync success');
+    } catch (e) {
+      console.error('DockHub sync exception:', e);
+    }
+  };
+
+  if (immediate) doPush();
+  else syncDebounce = setTimeout(doPush, 400);
+}
+const save = () => sync(true);
+
 load(null);
 
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return ''; } };
@@ -239,7 +267,7 @@ const norm = u => { u = (u || '').trim(); if (!u) return ''; return /^https?:\/\
 const nice = u => { const h = host(u).split('.'); const n = h.length > 1 ? h[h.length - 2] : h[0] || ''; return n ? n[0].toUpperCase() + n.slice(1) : ''; };
 const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
 
-// Vector SVG Logos
+// Vector SVG Logos for top platforms
 const W = '#fff', ST = (d, c = W, w = 2) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const LOGOS = {
 'facebook.com': ['#1877F2', '<path d="M14 13.5h2.5l1-4H14v-2c0-1.03.3-2 2-2h1.5V2.14c-.8-.11-1.8-.14-2.8-.14-3.5 0-5.7 2.1-5.7 6.1v3.4H6v4h3v9.5c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V13.5z" fill="#fff"/>'],
@@ -374,7 +402,6 @@ function bmModal(catId, edit) {
     const h = host(u);
     if (!h) { fu.focus(); fu.style.borderColor = '#f87171'; return; }
     const t = ft.value.trim() || nice(u), to = $('#fc').value;
-    
     const finalLogo = customLogo || (brand(u) ? undefined : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`);
 
     if (b) {
@@ -523,23 +550,25 @@ const REDIR = window.location.origin;
 const GLOGO = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.500 3.1-7.500z"/><path fill="#34A853" d="M12 22c2.800 0 5.100-.9 6.800-2.500l-3.300-2.600c-.9.600-2.100 1-3.500 1-2.700 0-5-1.800-5.800-4.300H2.800v2.700A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.200 13.600a6 6 0 0 1 0-3.800V7.100H2.800a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.900.5 4 1.600l3-3A10 10 0 0 0 2.800 7.100l3.400 2.700C7 7.700 9.300 5.900 12 5.900z"/></svg>';
 const isAdmin = () => !!S.user && S.user.email === ADMIN;
 
-let syncDebounce;
-function sync() {
-  if (!sb || !S.user) return;
-  clearTimeout(syncDebounce);
-  syncDebounce = setTimeout(async () => {
-    try {
-      // Columns strictly match public.user_dashboards table
-      const { error } = await sb.from('user_dashboards').upsert({
-        user_id: S.user.id,
-        categories: S.cats,
-        updated_at: new Date().toISOString()
-      });
-      if (error) console.error('DockHub sync error:', error.message);
-    } catch (e) {
-      console.error('DockHub sync error:', e);
-    }
-  }, 400);
+let realtimeChannel = null;
+function setupRealtime(userId) {
+  if (!sb || !userId) return;
+  if (realtimeChannel) sb.removeChannel(realtimeChannel);
+  realtimeChannel = sb.channel('user_dashboards_changes_' + userId)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'user_dashboards',
+      filter: `user_id=eq.${userId}`
+    }, payload => {
+      if (payload.new && Array.isArray(payload.new.categories)) {
+        S.cats = payload.new.categories;
+        if (typeof payload.new.dark === 'boolean') S.dark = payload.new.dark;
+        wr(dk(S.user), { cats: S.cats, dark: S.dark });
+        render();
+      }
+    })
+    .subscribe();
 }
 
 const mk = u => u ? {
@@ -552,6 +581,7 @@ const mk = u => u ? {
 async function applyUser(u) {
   dismissSplash();
   if (!u) {
+    if (realtimeChannel && sb) { sb.removeChannel(realtimeChannel); realtimeChannel = null; }
     load(null);
     render();
     showGate();
@@ -559,22 +589,26 @@ async function applyUser(u) {
   }
   hideGate();
   S.user = u;
+  setupRealtime(u.id);
+
   try {
-    const { data, error } = await sb.from('user_dashboards').select('categories').eq('user_id', u.id).maybeSingle();
+    const { data, error } = await sb.from('user_dashboards').select('*').eq('user_id', u.id).maybeSingle();
     if (error) throw error;
-    if (data && Array.isArray(data.categories) && data.categories.length) {
+    if (data && Array.isArray(data.categories)) {
       S.cats = data.categories;
+      if (typeof data.dark === 'boolean') S.dark = data.dark;
     } else {
-      // First time initialization in database
+      // First-time seeding for brand new user in cloud
       await sb.from('user_dashboards').upsert({
         user_id: u.id,
         categories: S.cats,
+        dark: S.dark,
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'user_id' });
     }
     wr(dk(u), { cats: S.cats, dark: S.dark });
   } catch (e) {
-    console.error('Cloud load failed, keeping local fallback:', e);
+    console.error('DockHub cloud load error:', e);
     load(u);
   }
   render();
