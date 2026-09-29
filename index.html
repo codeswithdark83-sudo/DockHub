@@ -376,7 +376,7 @@ function bmModal(catId,edit){
 function catModal(){
   let ic=ICONS[0];
   openModal(`<h3>Add category</h3><label>Name</label><input id="cn" placeholder="e.g. Design">
-   <label>Icon</label><div style="display:flex;flex-wrap:wrap;gap:6px" id="ip">${ICONS.map((e,i)=>`<button class="ic" data-i="${e}" style="${i?'':'border-color:var(--ac)'}">${e}</button>`).join('')}</div>
+   <label>Icon</label><div style="display:flex;flex-wrap:gap:6px" id="ip">${ICONS.map((e,i)=>`<button class="ic" data-i="${e}" style="${i?'':'border-color:var(--ac)'}">${e}</button>`).join('')}</div>
    <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">Create</button></div>`);
   $('#ip').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;ic=b.dataset.i;$('#ip').querySelectorAll('.ic').forEach(x=>x.style.borderColor='');b.style.borderColor='var(--ac)'};
   const go=()=>{const n=$('#cn').value.trim();if(!n){$('#cn').focus();return}S.cats.push({id:uid(),name:n,icon:ic,open:true,items:[]});save();closeModal();render()};
@@ -665,19 +665,33 @@ async function installApp(){
 $('#install').onclick=installApp;
 if($('#bi'))$('#bi').onclick=installApp;
 
-/* ---------- Boot & Cinematic Welcome Fade ---------- */
+/* ---------- Boot & Non-Blocking Welcome Fade ---------- */
 async function boot(){
   render();
-  if(sb){
-    const {data:{session}} = await sb.auth.getSession();
-    if(session&&session.user) await applyUser(mk(session.user));
-    else showGate();
-  }
-  await new Promise(r=>setTimeout(r,1100));
-  const sp=$('#splash');
-  if(sp){
-    sp.classList.add('out');
-    setTimeout(()=>sp.remove(),650);
+
+  // Non-blocking timeout to ensure splash screen always removes reliably
+  setTimeout(() => {
+    const sp = $('#splash');
+    if (sp) {
+      sp.classList.add('out');
+      setTimeout(() => sp.remove(), 650);
+    }
+  }, 1200);
+
+  if (sb) {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session && session.user) {
+        await applyUser(mk(session.user));
+      } else {
+        showGate();
+      }
+    } catch (e) {
+      console.error('Session init error:', e);
+      showGate();
+    }
+  } else {
+    showGate();
   }
 }
 boot();
