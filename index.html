@@ -201,7 +201,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
 const ICONS=['🌐','✨','🤖','💬','💻','📁','🎬','🎵','📰','🛒','🎮','📚','🧰','🏠','💼'];
-const B=(t,u)=>({id:uid(),title:t,url:u});
+const B=(t,u,logo)=>({id:uid(),title:t,url:u,logo});
 const DEF=[
  {id:uid(),name:'Google Suite',icon:'🌐',open:true,items:[B('Gmail','https://mail.google.com'),B('Drive','https://drive.google.com'),B('Calendar','https://calendar.google.com'),B('Docs','https://docs.google.com'),B('YouTube','https://youtube.com')]},
  {id:uid(),name:'AI Tools',icon:'🤖',open:true,items:[B('Claude','https://claude.ai'),B('ChatGPT','https://chatgpt.com'),B('Gemini','https://gemini.google.com'),B('Perplexity','https://perplexity.ai')]},
@@ -223,9 +223,10 @@ const norm=u=>{u=(u||'').trim();if(!u)return '';return /^https?:\/\//i.test(u)?u
 const nice=u=>{const h=host(u).split('.');const n=h.length>1?h[h.length-2]:h[0]||'';return n?n[0].toUpperCase()+n.slice(1):''};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
 
-// Vector SVG Logos for top platforms
+// Vector SVG Logos for top platforms (including Facebook)
 const W='#fff',ST=(d,c=W,w=2)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 const LOGOS={
+'facebook.com':['#1877F2','<path d="M14 13.5h2.5l1-4H14v-2c0-1.03.3-2 2-2h1.5V2.14c-.8-.11-1.8-.14-2.8-.14-3.5 0-5.7 2.1-5.7 6.1v3.4H6v4h3v9.5c.8.1 1.7.2 2.5.2s1.7-.1 2.5-.2V13.5z" fill="#fff"/>'],
 'mail.google.com':['#EA4335',ST('M4 7l8 6 8-6M4 7v10h16V7z')],
 'drive.google.com':['#fff','<path d="M8 4h8l6 10h-8z" fill="#FBBC04"/><path d="M8 4L2 14l4 6 6-10z" fill="#0F9D58"/><path d="M6 20h16l-4-6H2z" fill="#4285F4"/>'],
 'calendar.google.com':['#4285F4','<rect x="4" y="5" width="16" height="15" rx="2" fill="#fff"/><rect x="4" y="5" width="16" height="4.5" rx="1" fill="#EA4335"/>'+ST('M8 13h3M13 13h3M8 16.5h3','#4285F4',1.8)],
@@ -245,13 +246,17 @@ const LOGOS={
 'notion.so':['#fff','<rect x="5" y="4.5" width="14" height="15" rx="2" fill="none" stroke="#111" stroke-width="1.8"/>'+ST('M9 16V8l6 8V8','#111',1.8)],
 'figma.com':['#1e1e1e','<rect x="7" y="3" width="5" height="6" rx="2.5" fill="#F24E1E"/><rect x="12" y="3" width="5" height="6" rx="2.5" fill="#FF7262"/><rect x="7" y="9" width="5" height="6" rx="2.5" fill="#A259FF"/><circle cx="14.5" cy="12" r="2.5" fill="#1ABCFE"/><path d="M7 18.5A2.5 2.5 0 0 1 9.5 16H12v2.5a2.5 2.5 0 0 1-5 0z" fill="#0ACF83"/>']
 };
-const brand=u=>{const h=host(u);return LOGOS[h]||LOGOS[Object.keys(LOGOS).find(k=>h.endsWith('.'+k))]};
+const brand=u=>{
+  const h=host(u);
+  if(!h)return null;
+  return LOGOS[h]||LOGOS[Object.keys(LOGOS).find(k=>h===k||h.endsWith('.'+k))];
+};
 
 // Auto Favicon Fetcher with Fallback Initials
 const fav=(t,u,logo)=>{
-  if(logo)return `<div class="fav" style="background:#fff"><img alt="" src="${esc(logo)}"></div>`;
   const b=brand(u);
   if(b)return `<div class="fav" style="background:${b[0]};${b[0]==='#fff'?'border:1px solid rgba(0,0,0,.1)':''}"><svg viewBox="0 0 24 24">${b[1]}</svg></div>`;
+  if(logo)return `<div class="fav" style="background:#fff"><img alt="" src="${esc(logo)}"></div>`;
   const h=host(u);
   if(h){
     const iconUrl=`https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`;
@@ -302,27 +307,27 @@ function closeMenus(){document.querySelectorAll('.menu').forEach(m=>m.remove());
 function openModal(h){$('#mod').style.maxWidth='';$('#mod').innerHTML=h;$('#ov').classList.add('s');const f=$('#mod input');f&&setTimeout(()=>f.focus(),50)}
 function closeModal(){$('#ov').classList.remove('s')}
 
-// Bookmark Modal with Auto-Detected Icons
+// Bookmark Modal with Automatic Favicon Preview
 function bmModal(catId,edit){
   if(!S.cats.length){catModal();return}
   const b=edit?find(edit.c).items.find(i=>i.id===edit.b):null;
   const cur=edit?edit.c:(catId||S.cats[0].id);
   openModal(`<h3>${b?'Edit bookmark':'Add bookmark'}</h3>
-   <label>URL</label><input id="fu" placeholder="github.com" value="${b?esc(b.url):''}">
+   <label>URL</label><input id="fu" placeholder="e.g. facebook.com" value="${b?esc(b.url):''}">
    <div class="prev" id="pv"></div>
    <label>Nickname / title <span style="opacity:.6">(auto-filled from URL)</span></label><input id="ft" value="${b?esc(b.title):''}">
    <label>Custom logo <span style="opacity:.6">(optional — auto-detected for any link)</span></label><div style="display:flex;gap:8px"><input id="fl" type="file" accept="image/*"><button class="btn" id="rl" type="button">Clear</button></div>
    <label>Category</label><select id="fc">${S.cats.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${c.icon}${esc(c.name)}</option>`).join('')}</select>
    <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">${b?'Save':'Add'}</button></div>`);
   
-  let touched=!!b,logo=b?b.logo:undefined;
+  let touched=!!b,customLogo=b?b.logo:undefined;
   const fu=$('#fu'),ft=$('#ft');
   
   const pv=()=>{
     const u=norm(fu.value);
     const h=host(u);
     if(!touched&&h)ft.value=nice(u);
-    const autoLogo=logo||(h?`https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`:undefined);
+    const autoLogo=customLogo||(h?`https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`:undefined);
     $('#pv').innerHTML=u&&h
       ?fav(ft.value||nice(u),u,autoLogo)+`<div><b>${esc(ft.value||nice(u))}</b><div style="color:var(--mut);font-size:12px">${esc(h)}</div></div>`
       :'<span style="color:var(--mut)">Preview appears here…</span>';
@@ -338,24 +343,29 @@ function bmModal(catId,edit){
       const c=document.createElement('canvas');c.width=c.height=64;
       const x=c.getContext('2d'),m=Math.min(im.width,im.height);
       x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,64,64);
-      logo=c.toDataURL('image/png');URL.revokeObjectURL(url);pv();
+      customLogo=c.toDataURL('image/png');URL.revokeObjectURL(url);pv();
     };
     im.src=url;
   };
   
-  $('#rl').onclick=()=>{logo=undefined;$('#fl').value='';pv()};
+  $('#rl').onclick=()=>{customLogo=undefined;$('#fl').value='';pv()};
   pv();
 
   const go=()=>{
     const u=norm(fu.value);
-    if(!host(u)){fu.focus();fu.style.borderColor='#f87171';return}
+    const h=host(u);
+    if(!h){fu.focus();fu.style.borderColor='#f87171';return}
     const t=ft.value.trim()||nice(u),to=$('#fc').value;
+    
+    // Auto-detect and permanently assign logo if not custom
+    const finalLogo=customLogo||(brand(u)?undefined:`https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=128`);
+
     if(b){
       const from=find(edit.c);
       from.items=from.items.filter(i=>i.id!==b.id);
-      find(to).items.push({id:b.id,title:t,url:u,logo});
+      find(to).items.push({id:b.id,title:t,url:u,logo:finalLogo});
     }else{
-      find(to).items.push({...B(t,u),logo});
+      find(to).items.push({...B(t,u,finalLogo)});
     }
     save();closeModal();render();
   };
@@ -592,14 +602,15 @@ function authFormHTML(up){
 function wireAuthForm(container,up,onDone){
   const $$=s=>container.querySelector(s);
   const er=m=>$$('#er').textContent=m;   $$('#gg').onclick=async()=>{const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:REDIR}});if(error)er(error.message)};
-  const fp=$$('#fp');if(fp)fp.onclick=async()=>{const email=$$('#ae').value.trim();if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter your email above first.');     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:REDIR});er(error?error.message:'Password reset email sent.')};   const go=async()=>{     const email=$$('#ae').value.trim().toLowerCase(),pw=$$('#ap').value,name=up?$$('#an').value.trim():'';er('');
+  const fp=$$('#fp');   if(fp)fp.onclick=async()=>{     const email=$$('#ae').value.trim();
+    if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter your email above first.');     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:REDIR});     er(error?error.message:'Password reset email sent.');   };   const go=async()=>{     const email=$$('#ae').value.trim().toLowerCase(),pw=$$('#ap').value,name=up?$$('#an').value.trim():'';er('');
     if(!/^\S+@\S+\.\S+$/.test(email))return er('Enter a valid email address.');     if(up&&!name)return er('Please enter your name.');     if(up&&pw.length<8)return er('Password must be at least 8 characters.');     if(!pw)return er('Enter your password.');     const okBtn=$$('#ok');okBtn.disabled=true;
     try{
       if(up){
         const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{name},emailRedirectTo:REDIR}});
         if(error)throw error;
         if(data.session)onDone();
-        else container.innerHTML=`<h3>Check your inbox</h3><p class="note">We sent a confirmation link to ${esc(email)}. Confirm it, then sign in.</p><div class="mf"><button class="btn p" id="okc">OK</button></div>`,$$('#okc').onclick=()=>renderGate('in');       }else{         const {error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;onDone();       }     }catch(e){er(e.message\vert{}\vert{}'Something went wrong.');okBtn.disabled=false}   };   $$('#ok').onclick=go;container.onkeydown=e=>{if(e.key==='Enter')go()};
+        else container.innerHTML=`<h3>Check your inbox</h3><p class="note">We sent a confirmation link to ${esc(email)}. Confirm it, then sign in.</p><div class="mf"><button class="btn p" id="okc">OK</button></div>`,$$('#okc').onclick=()=>renderGate('in');       }else{         const {error}=await sb.auth.signInWithPassword({email,password:pw});if(error)throw error;onDone();       }     }catch(e){       er(e.message \vert{}\vert{} 'Something went wrong.');       okBtn.disabled=false;     }   };   $$('#ok').onclick=go;container.onkeydown=e=>{if(e.key==='Enter')go()};
 }
 
 function renderGate(mode='in'){
