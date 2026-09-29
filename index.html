@@ -192,8 +192,7 @@ function render(){
           <button class="dots" data-act="menu" aria-label="Menu">⋮</button></a>`).join('')}
         <button class="addm" data-act="add">+ Add bookmark</button></div></div></div></section>`;
   });
-  $('#root').innerHTML=(ql?html.split('</button>')[0]+'</button>':'')?'':'';
-  $('#root').innerHTML=(ql?html.match(/<button class="web"[\s\S]*?<\/button>/)[0]:'')+`<div class="grid">${ql?html.replace(/<button class="web"[\s\S]*?<\/button>/,''):html}</div>`+(!S.cats.length?'<div class="empty">No categories yet — add one to get started.</div>':ql&&!shown?'<div class="empty">No bookmarks match. Press Enter to search the web.</div>':'');
+  $('#root').innerHTML=(ql?html.match(/<button class="web"[\s\S]*?<\/button>/)?.[0]||'':'')+`<div class="grid">${ql?html.replace(/<button class="web"[\s\S]*?<\/button>/,''):html}</div>`+(!S.cats.length?'<div class="empty">No categories yet — add one to get started.</div>':ql&&!shown?'<div class="empty">No bookmarks match. Press Enter to search the web.</div>':'');
 }
 
 const find=id=>S.cats.find(c=>c.id===id);
@@ -210,23 +209,12 @@ function bmModal(catId,edit){
    <div class="prev" id="pv"></div>
    <label>Nickname / title <span style="opacity:.6">(auto-filled from URL)</span></label><input id="ft" value="${b?esc(b.title):''}">
    <label>Custom logo <span style="opacity:.6">(optional — auto-detected for popular sites)</span></label><div style="display:flex;gap:8px"><input id="fl" type="file" accept="image/*"><button class="btn" id="rl" type="button">Clear</button></div>
-   <button class="btn" id="ai" type="button" style="width:100%;margin-top:8px">✨ Auto-generate icon for this site</button>
-   <label>Category</label><select id="fc">${S.cats.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${c.icon} ${esc(c.name)}</option>`).join('')}</select>
+   <label>Category</label><select id="fc">${S.cats.map(c=>`<option value="${c.id}" ${c.id===cur?'selected':''}>${c.icon}${esc(c.name)}</option>`).join('')}</select>
    <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">${b?'Save':'Add'}</button></div>`);
   let touched=!!b,logo=b?b.logo:undefined;const fu=$('#fu'),ft=$('#ft');
   const pv=()=>{const u=norm(fu.value);if(!touched)ft.value=nice(u);$('#pv').innerHTML=u&&host(u)?fav(ft.value||nice(u),u,logo)+`<div><b>${esc(ft.value||nice(u))}</b><div style="color:var(--mut);font-size:12px">${esc(host(u))}</div></div>`:'<span style="color:var(--mut)">Preview appears here…</span>'};
   ft.oninput=()=>{touched=!!ft.value;pv()};fu.oninput=pv;
   $('#fl').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image(),url=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,64,64);logo=c.toDataURL('image/png');URL.revokeObjectURL(url);pv()};im.src=url};
-  $('#ai').onclick=async()=>{const u=norm(fu.value),btn=$('#ai');if(!host(u)){fu.focus();return}
-    btn.disabled=true;btn.textContent='Designing icon…';
-    try{const sm=window.claude&&await claude.use('sample');if(!sm)throw 0;
-      const r=await sm.json(`Design a simple app-icon logo for the website "${host(u)}" (${ft.value||nice(u)}). Return ONLY JSON: {"bg":"#RRGGBB","inner":"..."}. bg = the brand's main color. inner = SVG shapes/paths markup for viewBox 0 0 24 24, mostly white, a simple geometric mark evoking the brand. No text, script, images or styles. Max 600 characters.`,{modelTier:'quick'});
-      const bg=/^#[0-9a-f]{6}$/i.test(r.bg)?r.bg:'#6366f1';
-      const inner=String(r.inner||'').replace(/<\s*(script|foreignObject|image|style|use)[\s\S]*?(<\/\s*\1\s*>|\/>|$)/gi,'').replace(/\son\w+\s*=/gi,' x=').slice(0,1500);
-      logo='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="${bg}"/>${inner}</svg>`);
-      pv();btn.textContent='✨ Regenerate icon'}
-    catch(e){btn.textContent='Generation unavailable — upload a logo instead'}
-    btn.disabled=false};
   $('#rl').onclick=()=>{logo=undefined;$('#fl').value='';pv()};pv();
   const go=()=>{const u=norm(fu.value);if(!host(u)){fu.focus();fu.style.borderColor='#f87171';return}
     const t=ft.value.trim()||nice(u),to=$('#fc').value;
@@ -271,7 +259,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.menu,[data-act=menu
 $('#ov').addEventListener('click',e=>{if(e.target.id==='ov'||e.target.closest('[data-x]'))closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMenus()}if(e.key==='/'&&!/INPUT|SELECT/.test(document.activeElement.tagName)&&!document.activeElement.isContentEditable){e.preventDefault();$('#q').focus()}});
 $('#q').addEventListener('input',e=>{q=e.target.value;render()});
-$('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&q.trim()){const first=document.querySelector('.card');const ql=q.trim();
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&q.trim()){const ql=q.trim();
   if(/^[\w-]+(\.[\w-]+)+/.test(ql)&&!/\s/.test(ql))window.open(norm(ql),'_blank','noopener');
   else window.open('https://www.google.com/search?q='+encodeURIComponent(ql),'_blank','noopener')}});
 const tg=()=>{S.dark=!S.dark;save();render()};
@@ -279,46 +267,111 @@ $('#theme').onclick=tg;$('#bt').onclick=tg;
 $('#addBm').onclick=()=>bmModal();$('#bb').onclick=()=>bmModal();
 $('#addCat').onclick=catModal;$('#bc').onclick=catModal;
 $('#bq').onclick=()=>{scrollTo({top:0,behavior:'smooth'});$('#q').focus()};
-/* ---- SUPABASE CONFIG: paste your project values (Project Settings > API) ---- */
+
+/* ---- SUPABASE CONFIG ---- */
 const SUPABASE_URL='https://rtdhwjkpdowprwwpoord.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_LFFLmBtG-adRQVqrE2s_Pg_z_o1sOZO';
-const ADMIN='codeswithdark83@gmail.com'; /* cosmetic only: the server enforces admin in supabase-setup.sql */
+const ADMIN='codeswithdark83@gmail.com';
 const sb=(window.supabase&&!/YOUR_/.test(SUPABASE_URL))?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
-const REDIR=location.href.split('#')[0].split('?')[0];
+const REDIR=window.location.origin;
 const GLOGO='<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.500 3.1-7.500z"/><path fill="#34A853" d="M12 22c2.800 0 5.100-.9 6.800-2.500l-3.300-2.600c-.9.600-2.100 1-3.500 1-2.700 0-5-1.800-5.800-4.300H2.800v2.700A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.200 13.600a6 6 0 0 1 0-3.800V7.100H2.800a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.900.5 4 1.600l3-3A10 10 0 0 0 2.800 7.100l3.400 2.700C7 7.700 9.300 5.900 12 5.900z"/></svg>';
 const isAdmin=()=>!!S.user&&S.user.email===ADMIN;
+
 let syncT;
-function sync(){if(!sb||!S.user)return;clearTimeout(syncT);syncT=setTimeout(async()=>{try{await sb.from('dashboards').upsert({user_id:S.user.id,data:{cats:S.cats,dark:S.dark},updated_at:new Date().toISOString()})}catch(e){}},700)}
-const mk=u=>u?{id:u.id,email:(u.email||'').toLowerCase(),name:(u.user_metadata&&(u.user_metadata.name||u.user_metadata.full_name))||(u.email||'').split('@')[0],provider:(u.app_metadata&&u.app_metadata.provider)||'email'}:null;
+function sync(){
+  if(!sb||!S.user)return;
+  clearTimeout(syncT);
+  syncT=setTimeout(async()=>{
+    try{
+      await sb.from('user_dashboards').upsert({
+        user_id:S.user.id,
+        categories:S.cats,
+        updated_at:new Date().toISOString()
+      });
+    }catch(e){console.error('Sync failed:',e)}
+  },600);
+}
+
+const mk=u=>{
+  if(!u)return null;
+  const prov=(u.app_metadata&&u.app_metadata.provider)||(u.identities&&u.identities[0]&&u.identities[0].provider)||'email';
+  return {
+    id:u.id,
+    email:(u.email||'').toLowerCase(),
+    name:(u.user_metadata&&(u.user_metadata.full_name||u.user_metadata.name))||(u.email||'').split('@')[0],
+    provider:prov
+  };
+};
+
 async function applyUser(u){
-  if(!u){load(null);render();return}
+  if(!u){
+    load(null);
+    render();
+    return;
+  }
   S.user=u;
-  try{const {data}=await sb.from('dashboards').select('data').eq('user_id',u.id).maybeSingle();
-    if(data&&data.data&&data.data.cats){S.cats=data.data.cats;if(typeof data.data.dark==='boolean')S.dark=data.data.dark}
-    save()}catch(e){}
-  render()}
-if(sb)sb.auth.onAuthStateChange((ev,ses)=>{const u=mk(ses&&ses.user);
-  if(u&&(!S.user||S.user.id!==u.id))setTimeout(()=>applyUser(u),0);
-  else if(!u&&S.user)setTimeout(()=>applyUser(null),0)});
+  try{
+    const {data,error}=await sb.from('user_dashboards').select('categories').eq('user_id',u.id).maybeSingle();
+    if(data&&Array.isArray(data.categories)&&data.categories.length>0){
+      S.cats=data.categories;
+    }else{
+      // First time user: save current default layout to Supabase
+      await sb.from('user_dashboards').upsert({
+        user_id:u.id,
+        categories:S.cats,
+        updated_at:new Date().toISOString()
+      });
+    }
+    wr(dk(S.user),{cats:S.cats,dark:S.dark});
+  }catch(e){
+    console.error('Fetch dashboard failed:',e);
+  }
+  render();
+}
+
+if(sb){
+  sb.auth.getUser().then(({data:{user}})=>{
+    if(user)applyUser(mk(user));
+  });
+  sb.auth.onAuthStateChange((ev,ses)=>{
+    const u=mk(ses&&ses.user);
+    if(u&&(!S.user||S.user.id!==u.id))applyUser(u);
+    else if(!u&&S.user)applyUser(null);
+  });
+}
 
 async function adminModal(){
   openModal('<h3>Admin dashboard</h3><p class="note">Loading users…</p>');$('#mod').style.maxWidth='760px';
   let rows=null,err='';
-  try{const {data,error}=await sb.rpc('admin_list_users');if(error)throw error;
-    rows=data.map(r=>({name:r.name,email:r.email,provider:r.provider,joined:Date.parse(r.created_at),lastSeen:r.last_sign_in_at?Date.parse(r.last_sign_in_at):0}))}
-  catch(e){err='Could not load users: '+((e&&e.message)||'error')+'. Only the admin account can view this.'}
+  try{
+    const {data,error}=await sb.rpc('admin_list_users');
+    if(error)throw error;
+    rows=data.map(r=>({
+      name:r.name,
+      email:r.email,
+      provider:r.method||r.provider||'google',
+      joined:Date.parse(r.created_at),
+      lastSeen:r.last_sign_in_at?Date.parse(r.last_sign_in_at):0
+    }));
+  }catch(e){
+    err='Could not load users: '+((e&&e.message)||'error')+'. Only the admin account can view this.';
+  }
   const wk=Date.now()-6048e5,f=t=>t?new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'–',td='padding:8px 6px';
   const stat=(n,l)=>`<div class="prev" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;margin:0"><b style="font-size:22px">${n}</b><span style="color:var(--mut);font-size:12px">${l}</span></div>`;
   let h='<h3>Admin dashboard</h3>';
-  if(rows){h+=`<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length,'Total users')}${stat(rows.filter(r=>r.lastSeen>wk).length,'Active (7 days)')}${stat(rows.filter(r=>r.joined>wk).length,'New (7 days)')}${stat(rows.filter(r=>r.provider==='google').length,'Via Google')}</div>
-   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last sign-in</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="${td}">${esc(r.name||'')}</td><td style="${td}">${esc(r.email||'')}</td><td style="${td}">${esc(r.provider||'')}</td><td style="${td};white-space:nowrap">${f(r.joined)}</td><td style="${td};white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('')||'<tr><td colspan="5" style="padding:14px;color:var(--mut)">No users yet.</td></tr>'}</tbody></table></div>`}
-  else h+=`<div class="err">${esc(err)}</div>`;
+  if(rows){
+    h+=`<div style="display:flex;gap:10px;margin-bottom:14px">${stat(rows.length,'Total users')}${stat(rows.filter(r=>r.lastSeen>wk).length,'Active (7 days)')}${stat(rows.filter(r=>r.joined>wk).length,'New (7 days)')}${stat(rows.filter(r=>r.provider==='google').length,'Via Google')}</div>
+     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:var(--mut);text-align:left"><th style="padding:6px">Name</th><th style="padding:6px">Email</th><th style="padding:6px">Method</th><th style="padding:6px">Joined</th><th style="padding:6px">Last sign-in</th></tr></thead><tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="${td}">${esc(r.name||'')}</td><td style="${td}">${esc(r.email||'')}</td><td style="${td}">${esc(r.provider||'')}</td><td style="${td};white-space:nowrap">${f(r.joined)}</td><td style="${td};white-space:nowrap">${f(r.lastSeen)}</td></tr>`).join('')||'<tr><td colspan="5" style="padding:14px;color:var(--mut)">No users yet.</td></tr>'}</tbody></table></div>`;
+  }else{
+    h+=`<div class="err">${esc(err)}</div>`;
+  }
   h+=`<div class="mf">${rows?'<button class="btn" id="csv">⬇ Export CSV</button>':''}<button class="btn p" data-x>Close</button></div>`;
   $('#mod').innerHTML=h;
   if(rows)$('#csv').onclick=()=>{const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const t=['Name,Email,Method,Joined,Last sign-in',...rows.map(r=>[r.name,r.email,r.provider,new Date(r.joined).toISOString(),r.lastSeen?new Date(r.lastSeen).toISOString():''].map(q).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='dockhub-users.csv';a.click()};
 }
+
 function authModal(mode='in'){
-  if(!sb){openModal(`<h3>Set up Supabase</h3><p class="note">Sign-in is not configured yet. Open <code>index.html</code>, paste your <b>SUPABASE_URL</b> and <b>SUPABASE_ANON_KEY</b>, and run <code>supabase-setup.sql</code>. See the README for the full steps.</p><div class="mf"><button class="btn p" data-x>OK</button></div>`);return}
+  if(!sb){openModal(`<h3>Set up Supabase</h3><p class="note">Supabase is not configured properly.</p><div class="mf"><button class="btn p" data-x>OK</button></div>`);return}
   const up=mode==='up';
   openModal(`<h3>${up?'Create your account':'Welcome back'}</h3>
    <button class="btn gbtn" id="gg">${GLOGO} Continue with Google</button><div class="or">or use email</div>
@@ -346,6 +399,7 @@ function authModal(mode='in'){
     }catch(e){er(e.message||'Something went wrong.');const o=$('#ok');if(o)o.disabled=false}};
   $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
 }
+
 $('#user').onclick=()=>{
   if(!S.user)return authModal('in');
   openModal(`<h3>Your account</h3><div class="prev"><div class="av on" style="width:40px;height:40px">${esc($('#user').textContent)}</div><div><b>${esc(S.user.name)}</b><div style="color:var(--mut);font-size:12px">${esc(S.user.email)} · ${S.user.provider==='google'?'Google':'Email'}</div></div></div>
