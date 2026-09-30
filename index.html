@@ -86,6 +86,10 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 .ipick-q:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
 .ipick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;max-height:190px;overflow-y:auto;padding-right:2px}
 .ipick-grid .ic{width:100%;aspect-ratio:1;font-size:17px}
+.acct-list{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.btn.row{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:11px 14px}
+.btn.row span{color:var(--mut);font-size:15px}
+.btn.row:hover span{color:var(--ac)}
 .mod input,.mod select,.gbox input,.gbox select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:14px;outline:0}
 .mod input:focus,.mod select:focus,.gbox input:focus,.gbox select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
 .prev{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--bd);font-size:13px;min-height:56px}
@@ -521,7 +525,8 @@ $('#user').onclick=()=>{
   if(!S.user)return authModal();
   openModal(`<h3>Your account</h3><div class="prev"><div class="av on" style="width:40px;height:40px">${esc($('#user').textContent)}</div><div><b>${esc(S.user.name)}</b><div style="color:var(--mut);font-size:12px">${esc(S.user.email)} · ${S.user.provider==='google'?'Google':'Email'}</div></div></div>
    <p class="note">Your bookmarks sync to this account across devices.</p>
-   <div class="mf" style="flex-wrap:wrap">${isStandalone()?'':'<button class="btn" id="ins">📲 Install app</button>'}${isAdmin()?'<button class="btn" id="ad">🛡 Admin dashboard</button>':''}<button class="btn" data-x>Close</button><button class="btn p" id="so">Sign out</button></div>`);
+   <div class="acct-list">${isStandalone()?'':'<button class="btn row" id="ins">Install app<span>›</span></button>'}${isAdmin()?'<button class="btn row" id="ad">Admin dashboard<span>›</span></button>':''}</div>
+   <div class="mf"><button class="btn" data-x>Close</button><button class="btn p" id="so">Sign out</button></div>`);
   if(isAdmin())$('#ad').onclick=adminModal;
   if(!isStandalone())$('#ins').onclick=installApp;
   $('#so').onclick=async()=>{closeModal();await sb.auth.signOut();applyUser(null)};
