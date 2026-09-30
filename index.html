@@ -82,6 +82,10 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 @keyframes pop{from{opacity:0;transform:translateY(20px) scale(.94)}}
 .mod h3,.gbox h3{font-size:17px;margin-bottom:14px}
 .mod label,.gbox label{display:block;font-size:12px;color:var(--mut);margin:12px 0 5px;text-align:left}
+.ipick-q{width:100%;margin-bottom:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:13px;outline:0}
+.ipick-q:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
+.ipick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;max-height:190px;overflow-y:auto;padding-right:2px}
+.ipick-grid .ic{width:100%;aspect-ratio:1;font-size:17px}
 .mod input,.mod select,.gbox input,.gbox select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:14px;outline:0}
 .mod input:focus,.mod select:focus,.gbox input:focus,.gbox select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
 .prev{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--bd);font-size:13px;min-height:56px}
@@ -170,7 +174,49 @@ main{max-width:1280px;margin:0 auto;padding:28px 24px 110px}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
-const ICONS=['🌐','✨','🤖','💬','💻','📁','🎬','🎵','📰','🛒','🎮','📚','🧰','🏠','💼'];
+const ICON_DATA=[
+['🌐','web browser internet site'],['📁','folder files general'],['✨','ai magic sparkle new'],['🤖','ai bot robot assistant'],
+['🎓','education school university college learn study'],['📚','education books study reading library'],['✏️','education writing notes school'],
+['🧪','education science lab chemistry'],['🔬','education science research lab'],['🧮','education math calculator finance'],
+['🗒️','notes docs writing'],['📝','notes writing docs blog'],['📖','reading books education library'],
+['💻','dev work computer coding'],['⌨️','dev coding programming'],['🖥️','dev work desktop computer'],['🧑‍💻','dev programming work'],
+['🐙','dev github code repo'],['🧰','tools utilities work'],['🛠️','tools utilities settings'],['⚙️','settings tools config'],
+['💬','social chat messaging communication'],['📱','social mobile apps phone'],['📸','social photography instagram camera'],
+['🎥','video entertainment youtube film'],['🎬','entertainment movies film video'],['🎮','gaming games entertainment'],
+['🕹️','gaming retro entertainment'],['🎵','music audio entertainment'],['🎧','music audio podcast entertainment'],
+['📰','news articles reading media'],['🗞️','news media press'],['📺','entertainment tv streaming video'],
+['🛒','shopping ecommerce store cart'],['🛍️','shopping ecommerce store bags'],['💳','finance shopping payments money'],
+['💰','finance money savings'],['💵','finance money cash'],['📈','finance stocks investing growth work'],
+['📉','finance stocks investing'],['🏦','finance bank money'],['🧾','finance receipts invoices billing'],
+['🏥','health medical hospital'],['💊','health medical medicine'],['🩺','health medical doctor'],['🧘','health wellness fitness yoga'],
+['💪','fitness health gym workout'],['🏃','fitness health running sports'],['⚽','sports football games'],['🏀','sports basketball games'],
+['🏈','sports football games'],['🎾','sports tennis games'],
+['✈️','travel flights airport'],['🧳','travel luggage trip'],['🗺️','travel maps navigation'],['🏨','travel hotel booking'],
+['🍔','food restaurant delivery'],['🍕','food restaurant delivery'],['☕','food coffee drinks cafe'],['🍳','food cooking recipes'],
+['🏠','home personal general'],['🏡','home personal real estate'],['🔑','security passwords keys'],['🔒','security privacy passwords'],
+['🛡️','security privacy protection'],['☁️','cloud storage hosting'],['🗄️','cloud storage files archive'],
+['🎨','design art creative'],['🖌️','design art creative drawing'],['🖼️','design art gallery images'],['📐','design tools drafting'],
+['🧬','science biology research'],['🔭','science astronomy space'],['🧠','science psychology ai brain learning'],
+['📊','work analytics data charts'],['📅','calendar schedule planning'],['🗓️','calendar schedule planning'],['⏰','productivity time reminders'],
+['✅','productivity tasks todo checklist'],['📌','productivity notes pinned bookmarks'],['📎','productivity files attachments'],
+['💼','work business office career'],['🏢','work business office company'],['🤝','work business networking meetings'],
+['⚖️','legal law government'],['🏛️','government legal institution'],['🗳️','government politics voting'],
+['🙏','religion spirituality faith'],['🕌','religion faith mosque'],['⛪','religion faith church'],
+['🐾','pets animals'],['🐶','pets animals dogs'],['🐱','pets animals cats'],
+['🧸','kids children family'],['👶','kids family baby'],['🎁','kids gifts shopping'],
+['🌤️','weather forecast climate'],['🌦️','weather forecast rain'],['🎙️','podcast audio recording communication'],
+['📡','communication network broadcast'],['🚗','travel transport cars'],['🚌','travel transport commute'],
+['🧵','misc other general'],['📦','shopping delivery packages'],['🗂️','organization files folders']
+];
+const ICONS=ICON_DATA.map(x=>x[0]);
+function iconPickerHTML(current,id){return `<div class="ipick"><input class="ipick-q" placeholder="Search icons… (e.g. education, finance, dev)" autocomplete="off">
+  <div class="ipick-grid" id="${id}">${ICON_DATA.map(([e,k])=>`<button class="ic" data-i="${e}" data-k="${esc(k)}" style="${e===current?'border-color:var(--ac)':''}">${e}</button>`).join('')}</div></div>`}
+function wireIconPicker(root,onPick){
+  const q=root.querySelector('.ipick-q'),grid=root.querySelector('.ipick-grid');
+  q.oninput=()=>{const v=q.value.trim().toLowerCase();grid.querySelectorAll('.ic').forEach(b=>{b.style.display=(!v||b.dataset.k.includes(v)||b.textContent.includes(v))?'':'none'})};
+  grid.onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;grid.querySelectorAll('.ic').forEach(x=>x.style.borderColor='');b.style.borderColor='var(--ac)';onPick(b.dataset.i)};
+  setTimeout(()=>q.focus(),50);
+}
 const B=(t,u)=>({id:uid(),title:t,url:u});
 const DEF=[
  {id:uid(),name:'Google Suite',icon:'🌐',open:true,items:[B('Gmail','https://mail.google.com'),B('Drive','https://drive.google.com'),B('Calendar','https://calendar.google.com'),B('Docs','https://docs.google.com'),B('YouTube','https://youtube.com')]},
@@ -283,10 +329,10 @@ function bmModal(catId,edit){
 }
 function catModal(){
   let ic=ICONS[0];
-  openModal(`<h3>Add category</h3><label>Name</label><input id="cn" placeholder="e.g. Design">
-   <label>Icon</label><div style="display:flex;flex-wrap:wrap;gap:6px" id="ip">${ICONS.map((e,i)=>`<button class="ic" data-i="${e}" style="${i?'':'border-color:var(--ac)'}">${e}</button>`).join('')}</div>
+  openModal(`<h3>Add category</h3><label>Name</label><input id="cn" placeholder="e.g. Education">
+   <label>Icon</label>${iconPickerHTML(ic,'ip')}
    <div class="mf"><button class="btn" data-x>Cancel</button><button class="btn p" id="ok">Create</button></div>`);
-  $('#ip').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;ic=b.dataset.i;$('#ip').querySelectorAll('.ic').forEach(x=>x.style.borderColor='');b.style.borderColor='var(--ac)'};
+  wireIconPicker($('#mod'),e=>ic=e);
   const go=()=>{const n=$('#cn').value.trim();if(!n){$('#cn').focus();return}S.cats.push({id:uid(),name:n,icon:ic,open:true,items:[]});save();closeModal();render()};
   $('#ok').onclick=go;$('#mod').onkeydown=e=>{if(e.key==='Enter')go()};
 }
@@ -357,7 +403,10 @@ $('#root').addEventListener('click',e=>{
   if(a==='menu'){e.preventDefault();e.stopPropagation();const card=t.closest('.card');t.classList.add('o');
     const m=document.createElement('div');m.className='menu';m.innerHTML='<button data-m="edit">✏️ Edit</button><button data-m="up">⬆ Move up</button><button data-m="down">⬇ Move down</button><button data-m="del" class="del">🗑 Delete</button>';card.appendChild(m);card.style.overflow='visible';card.classList.add('mo');t.closest('.cat').classList.add('mo')}
   else if(a==='toggle'){c.open=!c.open;save();e.target.closest('.cat').classList.toggle('closed',!c.open)}
-  else if(a==='icon'){c.icon=ICONS[(ICONS.indexOf(c.icon)+1)%ICONS.length];save();render()}
+  else if(a==='icon'){const cid=c.id;
+    openModal(`<h3>Choose an icon</h3>${iconPickerHTML(c.icon,'ip2')}<div class="mf"><button class="btn p" data-x>Done</button></div>`);
+    wireIconPicker($('#mod'),e=>{find(cid).icon=e;save();render()});
+  }
   else if(a==='add')bmModal(c.id);
   else if(a==='catup'||a==='catdown'){const idx=S.cats.findIndex(x=>x===c),to=a==='catup'?idx-1:idx+1;
     if(to>=0&&to<S.cats.length){[S.cats[idx],S.cats[to]]=[S.cats[to],S.cats[idx]];save();render()}}
